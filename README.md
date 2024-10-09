@@ -35,12 +35,12 @@ Aplikasi ini memberikan pilihan tempat sarapan yang beragam melalui fitur pencar
 - Login & Sign Up
 - Welcoming
 - Deskripsi
-- Modul: Nyarap Pas, Nyarap Finder, Nyarap Detailer
+- Modul: Rekomendasi Nyarap, Nyarap Finder, Nyarap Detailer
 
 ### **Home Page:**
 - Welcoming
 - Deskripsi
-- Modul: Nyarap Pas, Nyarap Finder, Nyarap Detailer, Nyarap Favorit, Nyarap Ulasan
+- Modul: Rekomendasi Nyarap, Nyarap Finder, Nyarap Detailer, Nyarap Favorit, Nyarap Ulasan
 - FAQ
 
 ---
@@ -84,6 +84,7 @@ Pengguna **Registered User** memiliki akses penuh ke semua fitur, termasuk **Nya
 ---
 
 ## **Sumber Dataset Nyarap:**
-Dataset untuk aplikasi **Nyarap @Depok** diambil dari **Google Maps API** menggunakan metode scraping.
+Dataset untuk aplikasi **Nyarap @Depok** diambil dari **Google Maps API** menggunakan metode scraping. 
+Dataset Sheets Link: https://docs.google.com/spreadsheets/d/118LONXPZvz33LfAD1LT_CAC886jc-QeQuu83AdJqlBM/edit?usp=sharing 
 
 ---
