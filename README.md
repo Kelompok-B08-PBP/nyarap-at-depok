@@ -74,15 +74,6 @@ Pengguna **Registered User** memiliki akses penuh ke semua fitur, termasuk **Nya
 
 ---
 
-## **Pembagian Tugas:**
-- **Rekomendasi Nyarap (Discover)**: Valiza Nadya Jatikansha
-- **Nyarap Acticity (Community)**: Naila Syarifa Yosarvi
-- **Nyarap Detailer (Details)**: Dhafin Putra Nugraha
-- **Nyarap Nanti (Wishlist)**: Alisha Aline Athiyyah
-- **Nyarap Ulasan (Reviews)**: Maira Shasmeen Mazaya
-
----
-
 ## **Sumber Dataset Nyarap:**
 Dataset untuk aplikasi **Nyarap @Depok** diambil dari **Google Maps API** menggunakan metode scraping. 
 Dataset Sheets Link: https://docs.google.com/spreadsheets/d/118LONXPZvz33LfAD1LT_CAC886jc-QeQuu83AdJqlBM/edit?usp=sharing 
