@@ -7,6 +7,8 @@
 - Naila Syarifa Yosarvi - 2306245882
 - Valiza Nadya Jatikansha - 2306240156
 
+URL: http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id
+
 ## **Nyarap @Depok - Nyari Sarapan at Depok 🍳**
 
 ### **Visi:**  
