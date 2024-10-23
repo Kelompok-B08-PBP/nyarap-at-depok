@@ -1,20 +1,36 @@
-.form-style form input, form textarea, form select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 2px solid #bcbcbc;
-    border-radius: 0.375rem;
+.main-container {
+    padding-top: 120px;  /* Untuk memberikan ruang di bawah navbar */
+    min-height: 100vh;
 }
-.form-style form input:focus, form textarea:focus, form select:focus {
-    outline: none;
-    border-color: #674ea7;
-    box-shadow: 0 0 0 3px #674ea7;
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
 }
-@keyframes shine {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+
+.site-title {
+    font-size: 48px;
+    margin-bottom: 40px;
 }
-.animate-shine {
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.3));
-    background-size: 200% 100%;
-    animation: shine 3s infinite;
+
+.search-button-container {
+    margin-top: 30px;
+}
+
+.search-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #FF5B00;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.search-button:hover {
+    background-color: #FF7A33;
 }
