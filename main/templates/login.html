@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block meta %}
 {% include 'navbar.html' %}
 <title>Login</title>
@@ -7,19 +8,20 @@
     @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&display=swap');
 
-    body {
+    body, html {
         margin: 0;
         padding: 0;
+        height: 100%; /* Ensures body and html take the full viewport height */
     }
 
     .container {
-        width: 100%;
-        min-height: 100vh;
-        padding-top: 190px;
+        height: 100vh; /* Ensure it takes the full screen height */
+        width: 500vh;
         background: #FFF9C7;
         display: flex;
-        flex-direction: column;
+        justify-content: center;
         align-items: center;
+        flex-direction: column;
     }
 
     .login-content {
@@ -140,7 +142,7 @@
     <div class="login-content">
         <div class="logo-section">
             <div class="logo-container">
-                <img src="{% static 'images/logobesar.png' %}" alt="Nyarap at Depok Logo">
+                <img src="{% static 'images/logo_besar.png' %}" alt="Nyarap at Depok Logo">
             </div>
             <h1 class="app-title">Nyarap at Depok</h1>
         </div>
