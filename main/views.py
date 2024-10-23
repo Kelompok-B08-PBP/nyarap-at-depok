@@ -10,6 +10,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from .forms import PreferencesForm  # Updated import name
+from .models import UserPreference
 
 
 def show_main(request):
@@ -84,3 +86,63 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return redirect('main:login')
+
+# views.py
+
+def recommendations(request):
+    context = {
+        'is_authenticated': request.user.is_authenticated,
+        'name': request.user.username if request.user.is_authenticated else None,
+        'form': PreferencesForm()  # Updated form name
+    }
+    
+    if request.method == 'POST':
+        form = PreferencesForm(request.POST)  # Updated form name
+        if form.is_valid():
+            location = form.cleaned_data['preferred_location']
+            breakfast_type = form.cleaned_data['preferred_breakfast_type']
+            price_range = form.cleaned_data['preferred_price_range']
+            
+            if request.user.is_authenticated:
+                UserPreference.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        'preferred_location': location,
+                        'preferred_breakfast_type': breakfast_type,
+                        'preferred_price_range': price_range
+                    }
+                )
+                messages.success(request, 'Preferensi kamu telah disimpan!')
+            
+            return redirect('main:recommendation_list')
+        else:
+            context['form'] = form
+    
+    return render(request, 'recommendations.html', context)
+
+def create_preference_entry(request):
+    if request.method == 'POST':
+        form = PreferencesForm(request.POST)  # Updated form name
+        if form.is_valid():
+            preference = form.save(commit=False)
+            preference.user = request.user
+            preference.save()
+            return redirect('main:recommendation_list')
+    else:
+        form = PreferencesForm()  # Updated form name
+    
+    context = {'form': form}
+    return render(request, "create_preference.html", context)
+
+def recommendation_list(request):
+    context = {
+        'user_preferences': []
+    }
+    
+    if request.user.is_authenticated:
+        # Get user's preference history
+        context['user_preferences'] = UserPreference.objects.filter(
+            user=request.user
+        ).order_by('-created_at')
+        
+    return render(request, 'recommendation_list.html', context)

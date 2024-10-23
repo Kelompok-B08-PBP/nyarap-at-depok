@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
+        <!-- Form Header -->
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-900">Cari Rekomendasi Sarapan</h2>
+            {% if is_authenticated %}
+                <p class="mt-2 text-gray-600">Hai {{ name }}, preferensimu akan disimpan untuk referensi di masa mendatang</p>
+            {% else %}
+                <p class="mt-2 text-gray-600">Silakan login untuk menyimpan preferensimu</p>
+            {% endif %}
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %} rounded-lg">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Recommendation Form -->
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="space-y-2">
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-[#FF5B00] text-white py-3 px-4 rounded-lg hover:bg-[#FF7A33] transition duration-300">
+                    Cari Sarapan
+                </button>
+            </div>
+        </form>
+
+        {% if not is_authenticated %}
+        <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p class="text-gray-600 mb-4">Ingin menyimpan preferensimu?</p>
+            <div class="space-x-4">
+                <a href="{% url 'main:login' %}" class="text-[#FF5B00] hover:text-[#FF7A33] font-medium">
+                    Login
+                </a>
+                <span class="text-gray-400">atau</span>
+                <a href="{% url 'main:register' %}" class="text-[#FF5B00] hover:text-[#FF7A33] font-medium">
+                    Register
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
