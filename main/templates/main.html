@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% include 'navbar.html' %}
 {% load static %}
 
 {% block meta %}
@@ -62,9 +63,9 @@
 }
 
 .recommendation-section {
-    width: 90%; /* Increased width */
-    max-width: 1400px; /* Increased max-width */
-    margin: 100px auto 60px; 
+    width: 90%; 
+    max-width: 1400px; 
+    margin: 0px auto 60px; 
     background: white;
     box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
     border-radius: 28px;
@@ -77,7 +78,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 60px; /* Added gap for spacing */
+    gap: 60px; 
 }
 
 .recommendation-text {
@@ -124,8 +125,8 @@
 }
 
 .recommendation-image {
-    width: 45%; /* Changed to percentage */
-    max-width: 450px; /* Added max-width */
+    width: 45%; 
+    max-width: 450px;
     height: auto;
     object-fit: contain;
 }

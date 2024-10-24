@@ -87,8 +87,6 @@ def logout_user(request):
     response.delete_cookie('last_login')
     return redirect('main:login')
 
-# views.py
-
 def recommendations(request):
     context = {
         'is_authenticated': request.user.is_authenticated,
@@ -119,20 +117,6 @@ def recommendations(request):
             context['form'] = form
     
     return render(request, 'recommendations.html', context)
-
-def create_preference_entry(request):
-    if request.method == 'POST':
-        form = PreferencesForm(request.POST)  # Updated form name
-        if form.is_valid():
-            preference = form.save(commit=False)
-            preference.user = request.user
-            preference.save()
-            return redirect('main:recommendation_list')
-    else:
-        form = PreferencesForm()  # Updated form name
-    
-    context = {'form': form}
-    return render(request, "create_preference.html", context)
 
 def recommendation_list(request):
     context = {

@@ -2,71 +2,31 @@
 {% load static %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <!-- Header Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+{% include 'navbar.html' %}
+<div class="min-h-screen bg-gray-50 py-12 mt-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md mt-12">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Recommendation List</h1>
-            <p class="mt-2 text-gray-600">Hasil pencarian sesuai preferensimu</p>
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Rekomendasi Sarapan</h2>
+            <p class="text-gray-500 text-lg">Berikut rekomendasi tempat sarapan berdasarkan preferensimu.</p>
         </div>
 
-        <!-- Category Filter -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-8">
-            <div class="flex flex-wrap gap-4 justify-center">
-                <button class="px-4 py-2 rounded-full bg-[#44624a] text-white hover:bg-[#537357] transition-colors">
-                    All
-                </button>
-                <button class="px-4 py-2 rounded-full border border-[#44624a] text-[#44624a] hover:bg-[#44624a] hover:text-white transition-colors">
-                    Breakfast
-                </button>
-                <button class="px-4 py-2 rounded-full border border-[#44624a] text-[#44624a] hover:bg-[#44624a] hover:text-white transition-colors">
-                    Snacks
-                </button>
-                <button class="px-4 py-2 rounded-full border border-[#44624a] text-[#44624a] hover:bg-[#44624a] hover:text-white transition-colors">
-                    Pasta
-                </button>
-                <button class="px-4 py-2 rounded-full border border-[#44624a] text-[#44624a] hover:bg-[#44624a] hover:text-white transition-colors">
-                    Main Course
-                </button>
-                <button class="px-4 py-2 rounded-full border border-[#44624a] text-[#44624a] hover:bg-[#44624a] hover:text-white transition-colors">
-                    Burger
-                </button>
-            </div>
-        </div>
-
-        <!-- Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Sidebar with History -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">History Preferences</h2>
-                    {% if user.is_authenticated %}
-                        {% for preference in user_preferences %}
-                        <div class="mb-4 p-4 bg-purple-100 rounded-lg">
-                            <h3 class="font-medium text-purple-900">Preferences {{ forloop.counter }}</h3>
-                            <ul class="mt-2 text-sm text-purple-800">
-                                <li>Lokasi: {{ preference.get_preferred_location_display }}</li>
-                                <li>Jenis: {{ preference.get_preferred_breakfast_type_display }}</li>
-                                <li>Harga: {{ preference.get_preferred_price_range_display }}</li>
-                            </ul>
-                        </div>
-                        {% empty %}
-                        <p class="text-gray-600">Belum ada history preferensi</p>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-gray-600">Login untuk melihat history preferensi</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Main Content Area (Will contain products later) -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="text-center py-12">
-                        <p class="text-gray-600">Products will be displayed here</p>
+        <!-- Recommendations List -->
+        <div class="space-y-6">
+            {% if user_preferences %}
+                {% for preference in user_preferences %}
+                    <div class="p-4 bg-white shadow rounded-lg">
+                        <h3 class="text-xl font-semibold text-gray-900">Lokasi: {{ preference.preferred_location }}</h3>
+                        <p class="text-gray-700">Kategori Sarapan: {{ preference.preferred_breakfast_type }}</p>
+                        <p class="text-gray-700">Rentang Harga: {{ preference.preferred_price_range }}</p>
                     </div>
-                </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-gray-500 text-lg">Belum ada preferensi yang disimpan. Silakan kembali ke halaman sebelumnya dan pilih preferensimu.</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="{% url 'main:show_main' %}" class="px-8 py-2 bg-black text-white rounded-full">Home</a>
         </div>
     </div>
 </div>
