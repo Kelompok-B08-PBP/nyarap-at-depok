@@ -12,6 +12,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import PreferencesForm  # Updated import name
 from .models import UserPreference
+import pandas as pd
 
 
 def show_main(request):
@@ -87,12 +88,123 @@ def logout_user(request):
     response.delete_cookie('last_login')
     return redirect('main:login')
 
-def recommendation_list(request):
+def recommendations(request):
+    if request.method == 'POST':
+        # Log request data for debugging
+        
+        breakfast_category = request.POST.get('breakfast_category')
+        district_category = request.POST.get('district_category')
+        price_range = request.POST.get('price_range')
+        
+        
+        # Ensure all fields are provided
+        if not all([breakfast_category, district_category, price_range]):
+            messages.error(request, 'Mohon pilih semua kategori sebelum melanjutkan.')
+            return HttpResponseRedirect(reverse('main:recommendations'))
+        
+        try:
+            if request.user.is_authenticated:
+                # Update or create preferences for authenticated user
+                preference, created = UserPreference.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        'preferred_breakfast_type': breakfast_category,
+                        'preferred_location': district_category,
+                        'preferred_price_range': price_range,
+                    }
+                )
+            else:
+                # Store preferences in session for non-authenticated users
+                request.session['preferred_breakfast_type'] = breakfast_category
+                request.session['preferred_location'] = district_category
+                request.session['preferred_price_range'] = price_range
+                logger.info("Preferences stored in session")
+            
+            return HttpResponseRedirect(reverse('main:recommendation_list'))
+            
+        except Exception as e:
+            messages.error(request, 'Terjadi kesalahan saat menyimpan preferensi.')
+            return HttpResponseRedirect(reverse('main:recommendations'))
+
     context = {
         'is_authenticated': request.user.is_authenticated,
+        'name': request.user.username if request.user.is_authenticated else None,
     }
     
-    # Dictionary untuk convert nilai dari form ke display value
+    # Get existing preferences for the form
+    if request.user.is_authenticated:
+        try:
+            preference = UserPreference.objects.get(user=request.user)
+            context['initial_data'] = {
+                'breakfast_category': preference.preferred_breakfast_type,
+                'district_category': preference.preferred_location,
+                'price_range': preference.preferred_price_range,
+            }
+        except UserPreference.DoesNotExist:
+            pass
+            
+    return render(request, 'recommendations.html', context)
+
+def load_recommendations_from_excel():
+    # Load the data from the Excel file
+    df = pd.read_excel('main/data/dataset.xlsx')
+
+    # Convert to dictionary grouped by Kategori (breakfast type) and Kecamatan (location)
+    recommendations = {}
+    for _, row in df.iterrows():
+        kategori = row['Kategori']  # Map Kategori to breakfast_type
+        kecamatan = row['Kecamatan']  # Map Kecamatan to location
+
+        # Initialize dictionary for each Kategori if not present
+        if kategori not in recommendations:
+            recommendations[kategori] = {}
+
+        # Initialize list for each Kecamatan if not present
+        if kecamatan not in recommendations[kategori]:
+            recommendations[kategori][kecamatan] = []
+
+        # Append recommendation details for each Kecamatan
+        # recommendations[kategori][kecamatan].append({
+        #     'name': row['Nama Produk'],  # Map Nama Produk to product name
+        #     'restaurant': row['Nama Restoran'],  # Name of restaurant
+        #     'restaurant_type': row['Tipe Restoran'],  # Restaurant type
+        #     'rating': row['Rating'],  # Restaurant rating
+        #     'operational_hours': row['Jam Operasional'],  # Restaurant operational hours
+        #     'location': row['Lokasi'],  # Location (address)
+        #     'price': str(row['Harga']),  # Map Harga to price
+        #     'image': row['Link Foto']  # Map Link Foto to image
+        # })
+
+    return recommendations
+
+# Define the recommendation logic
+def get_recommendations(breakfast_type, location, price_range):
+    # Load recommendations from the Excel file
+    recommendations = load_recommendations_from_excel()
+    
+    # Get recommendations based on Kategori (breakfast_type) and Kecamatan (location)
+    location_recommendations = recommendations.get(breakfast_type, {}).get(location, [])
+    
+    # Filter by price range
+    price_ranges = {
+        '0-15000': (0, 15000),
+        '15000-25000': (15000, 25000),
+        '25000-50000': (25000, 50000),
+        '50000-100000': (50000, 100000),
+        '100000+': (100000, float('inf'))
+    }
+    
+    min_price, max_price = price_ranges[price_range]
+    filtered_recommendations = [
+        item for item in location_recommendations
+        if min_price <= float(item['price']) <= max_price
+    ]
+    
+    return filtered_recommendations
+
+
+def recommendation_list(request):
+    # Dictionary to display human-readable values for the preferences
     breakfast_display = {
         'masih_bingung': 'Masih Bingung',
         'nasi': 'Nasi',
@@ -100,108 +212,44 @@ def recommendation_list(request):
         'lontong': 'Lontong',
         'cemilan': 'Cemilan',
         'minuman': 'Minuman',
+        'mie': 'Mie',
+        'telur':'Telur',
+        'bubur':'Bubur'
     }
 
-    location_display = {
-        'beji': 'Beji',
-        'bojongsari': 'Bojongsari',
-        'cilodong': 'Cilodong',
-        'cimanggis': 'Cimanggis',
-        'cinere': 'Cinere',
-        'cipayung': 'Cipayung',
-        'limo': 'Limo',
-        'pancoran_mas': 'Pancoran Mas',
-        'sawangan': 'Sawangan',
-        'sukmajaya': 'Sukmajaya',
-        'tapos': 'Tapos',
-    }
-
-    price_display = {
-        '0-15000': 'Dibawah Rp 15.000',
-        '15000-25000': 'Rp 15.000 - Rp 25.000',
-        '25000-50000': 'Rp 25.000 - Rp 50.000',
-        '50000-100000': 'Rp 50.000 - Rp 100.000',
-        '100000+': 'Diatas Rp 100.000',
-    }
+    location_display = dict(UserPreference.KECAMATAN_CHOICES)
+    price_display = dict(UserPreference.PRICE_CHOICES)
     
+    # Get preferences either from database or session
     if request.user.is_authenticated:
         try:
-            # Ambil preferensi terbaru dari user yang login
-            latest_preference = UserPreference.objects.filter(user=request.user).latest('created_at')
-            print("Fetched preference:", latest_preference.preferred_breakfast_type, latest_preference.preferred_location, latest_preference.preferred_price_range)  # Debug
-            
-            context['preference'] = {
-                'breakfast_type': breakfast_display.get(latest_preference.preferred_breakfast_type),
-                'location': location_display.get(latest_preference.preferred_location),
-                'price_range': price_display.get(latest_preference.preferred_price_range)
-            }
+            preference = UserPreference.objects.get(user=request.user)
+            breakfast_type = preference.preferred_breakfast_type
+            location = preference.preferred_location
+            price_range = preference.preferred_price_range
         except UserPreference.DoesNotExist:
-            context['preference'] = {
-                'breakfast_type': 'Belum dipilih',
-                'location': 'Belum dipilih',
-                'price_range': 'Belum dipilih'
-            }
+            return HttpResponseRedirect(reverse('main:recommendations'))
     else:
-        # Untuk user yang tidak login, ambil dari session
-        breakfast_type = request.session.get('preferred_breakfast_type', '')
-        location = request.session.get('preferred_location', '')
-        price_range = request.session.get('preferred_price_range', '')
+        breakfast_type = request.session.get('preferred_breakfast_type')
+        location = request.session.get('preferred_location')
+        price_range = request.session.get('preferred_price_range')
         
-        context['preference'] = {
-            'breakfast_type': breakfast_display.get(breakfast_type, 'Belum dipilih'),
-            'location': location_display.get(location, 'Belum dipilih'),
-            'price_range': price_display.get(price_range, 'Belum dipilih')
-        }
-
-    return render(request, 'recommendation_list.html', context)
-
-def recommendations(request):
+        if not all([breakfast_type, location, price_range]):
+            return HttpResponseRedirect(reverse('main:recommendations'))
+    
+    # Get recommended products based on preferences
+    recommended_products = get_recommendations(breakfast_type, location, price_range)
+    
     context = {
+        'preference': {
+            'location': location_display[location],
+            'breakfast_type': breakfast_display[breakfast_type],
+            'price_range': price_display[price_range]
+        },
+        'recommendations': recommended_products,
         'is_authenticated': request.user.is_authenticated,
         'name': request.user.username if request.user.is_authenticated else None,
     }
-    
-    if request.method == 'POST':
-        if request.user.is_authenticated:
-            try:
-                existing_preference = UserPreference.objects.get(user=request.user)
-                form = PreferencesForm(request.POST, instance=existing_preference)
-            except UserPreference.DoesNotExist:
-                form = PreferencesForm(request.POST)
-        else:
-            form = PreferencesForm(request.POST)
-        
-        if form.is_valid():
-            if request.user.is_authenticated:
-                preference = form.save(commit=False)
-                preference.user = request.user
-                preference.save()
-                messages.success(request, 'Preferensi kamu telah diperbarui!')
-                print("Updated preference:", preference.preferred_breakfast_type, preference.preferred_location, preference.preferred_price_range)  # Debug
-            else:
-                # Simpan ke session untuk user yang tidak login
-                request.session['preferred_location'] = form.cleaned_data['preferred_location']
-                request.session['preferred_breakfast_type'] = form.cleaned_data['preferred_breakfast_type']
-                request.session['preferred_price_range'] = form.cleaned_data['preferred_price_range']
-                print("Saved to session:", form.cleaned_data)  # Debug
-            
-            return redirect('main:recommendation_list')
-    else:
-        # GET request - tampilkan form dengan data yang ada
-        if request.user.is_authenticated:
-            try:
-                existing_preference = UserPreference.objects.get(user=request.user)
-                form = PreferencesForm(instance=existing_preference)
-            except UserPreference.DoesNotExist:
-                form = PreferencesForm()
-        else:
-            # Pre-fill form dari session untuk user yang tidak login
-            initial_data = {
-                'preferred_location': request.session.get('preferred_location', ''),
-                'preferred_breakfast_type': request.session.get('preferred_breakfast_type', ''),
-                'preferred_price_range': request.session.get('preferred_price_range', ''),
-            }
-            form = PreferencesForm(initial=initial_data)
-    
-    context['form'] = form
-    return render(request, 'recommendations.html', context)
+
+    return render(request, 'recommendation_list.html', context)
+

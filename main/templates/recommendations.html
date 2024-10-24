@@ -3,6 +3,121 @@
 
 {% block content %}
 {% include 'navbar.html' %}
+<div class="min-h-screen bg-gray-50 py-12 mt-0">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %} rounded-lg">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Add this to pass initial data safely -->
+        {{ initial_data|json_script:"initialData" }}
+
+        <!-- Add the JavaScript -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Safely get initial data from the JSON script tag
+                const initialData = JSON.parse(document.getElementById('initialData').textContent);
+                
+                // Set initial values if they exist
+                if (initialData.breakfast_category) {
+                    const breakfastInput = document.querySelector(`input[name="breakfast_category"][value="${initialData.breakfast_category}"]`);
+                    if (breakfastInput) {
+                        breakfastInput.checked = true;
+                        breakfastInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+                
+                if (initialData.district_category) {
+                    const districtInput = document.querySelector(`input[name="district_category"][value="${initialData.district_category}"]`);
+                    if (districtInput) {
+                        districtInput.checked = true;
+                        districtInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+                
+                if (initialData.price_range) {
+                    const priceInput = document.querySelector(`input[name="price_range"][value="${initialData.price_range}"]`);
+                    if (priceInput) {
+                        priceInput.checked = true;
+                        priceInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+
+                // Add click handlers to all radio buttons for immediate feedback
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        // Remove highlight from all options in the same group
+                        const containers = document.querySelectorAll(`input[name="${this.name}"] + div`);
+                        containers.forEach(container => {
+                            container.classList.remove('ring-2', 'ring-[#FF5B00]');
+                        });
+                        
+                        // Add highlight to selected option
+                        this.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    });
+                });
+            });
+
+            function submitForm(event) {
+                // Get the form
+                const form = event.target.closest('form');
+                
+                // Basic form validation
+                const breakfast = form.querySelector('input[name="breakfast_category"]:checked');
+                const district = form.querySelector('input[name="district_category"]:checked');
+                const price = form.querySelector('input[name="price_range"]:checked');
+                
+                // Check if all required fields are selected
+                if (!breakfast || !district || !price) {
+                    event.preventDefault();
+                    // Create error message div
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-center';
+                    errorDiv.textContent = 'Mohon pilih kategori sarapan, kecamatan, dan rentang harga terlebih dahulu';
+                    
+                    // Insert error message before the navigation buttons
+                    const navButtons = event.target.closest('.flex');
+                    navButtons.parentNode.insertBefore(errorDiv, navButtons);
+                    
+                    // Scroll to error message
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Remove error message after 3 seconds
+                    setTimeout(() => {
+                        errorDiv.remove();
+                    }, 3000);
+                    
+                    return false;
+                }
+                
+                // If validation passes, submit the form
+                form.action = "{% url 'main:recommendation_list' %}";
+                return true;
+            }
+        </script>
+
+        <!-- Rest of your form content... -->
+        <form method="POST" class="space-y-6" onsubmit="return submitForm(event)">
+            {% csrf_token %}
+    <!-- Breakfast Categories -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+        {% for type, label in breakfast_choices.items %}
+        <label class="relative cursor-pointer">
+            <input type="radio" name="breakfast_category" value="{{ type }}" class="peer sr-only" 
+                   {% if initial_data.breakfast_category == type %}checked{% endif %}>
+            <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                <div class="flex flex-col items-center">
+                    <img src="{% static 'images/'|add:type|add:'.png' %}" alt="{{ label }}" class="w-20 h-20 mb-2">
+                    <span class="text-gray-700 font-medium">{{ label }}</span>
+                </div>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+
 <div class="min-h-screen bg-gray-50 py-12 mt-12">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md mt-12">
         <!-- Form Header -->
@@ -114,17 +229,6 @@
                         <div class="flex flex-col items-center">
                             <img src="{% static 'images/minuman.png' %}" alt="Minuman" class="w-20 h-20 mb-2">
                             <span class="text-gray-700 font-medium">Minuman</span>
-                        </div>
-                    </div>
-                </label>
-
-                <!-- Lainnya -->
-                <label class="relative cursor-pointer">
-                    <input type="radio" name="breakfast_category" value="lainnya" class="peer sr-only">
-                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
-                        <div class="flex flex-col items-center">
-                            <img src="{% static 'images/lainnya.png' %}" alt="Lainnya" class="w-20 h-20 mb-2">
-                            <span class="text-gray-700 font-medium">Lainnya</span>
                         </div>
                     </div>
                 </label>
@@ -359,6 +463,8 @@
 <!-- Add this script section at the bottom of your template -->
 <script>
 function submitForm(event) {
+    event.preventDefault();  // Prevent default form submission
+    
     // Get the form
     const form = event.target.closest('form');
     
@@ -369,7 +475,6 @@ function submitForm(event) {
     
     // Check if all required fields are selected
     if (!breakfast || !district || !price) {
-        event.preventDefault();
         // Create error message div
         const errorDiv = document.createElement('div');
         errorDiv.className = 'mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-center';
@@ -387,11 +492,19 @@ function submitForm(event) {
             errorDiv.remove();
         }, 3000);
         
-        return;
+        return false;
     }
     
-    // If validation passes, submit the form
-    form.action = "{% url 'main:recommendation_list' %}";
+    // Create FormData object
+    const formData = new FormData(form);
+
+    // Log the form data for debugging
+    console.log('Form Data:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    // Submit the form
     form.submit();
 }
 </script>
