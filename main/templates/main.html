@@ -1,21 +1,168 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Sarala:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.hero {
+    width: 100vw;
+    min-height: calc(100vh + 200px); 
+    background: url("{% static 'images/backgroundhero.png' %}") no-repeat center center;
+    background-size: cover;
+    position: relative;
+    margin-top: 80px;
+    padding-top: 100px;
+    overflow: visible;
+}
+.content {
+    position: absolute;
+    left: 50%;
+    top: 22%; 
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 100%;
+    max-width: 1200px;
+    padding: 30px 20px;
+}
+
+.title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: black;
+}
+
+.subtitle {
+    color: #C3372B;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.description {
+    margin-top: 24px;
+    color: #676B6F;
+    font-size: 32px;
+    font-family: 'Sarala', sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.recommendation-section {
+    width: 90%; /* Increased width */
+    max-width: 1400px; /* Increased max-width */
+    margin: 100px auto 60px; 
+    background: white;
+    box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
+    border-radius: 28px;
+    padding: 40px 80px; 
+    position: relative;
+    z-index: 10;
+}
+
+.recommendation-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 60px; /* Added gap for spacing */
+}
+
+.recommendation-text {
+    width: 45%; 
+    max-width: 500px; 
+}
+
+.recommendation-title {
+    color: #C3372B;
+    font-size: 36px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    line-height: 46.40px;
+    margin-bottom: 21px;
+}
+
+.recommendation-description {
+    color: #7B7A7A;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    line-height: 31.40px;
+    margin-bottom: 21px;
+}
+
+.recommendation-button {
+    background: #F6D110;
+    border-radius: 42px;
+    padding: 9px 46px;
+    width: 292px;
+    text-align: center;
+    color: black;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    line-height: 36px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border: none;
+}
+
+.recommendation-button:hover {
+    background: #e6c30f;
+}
+
+.recommendation-image {
+    width: 45%; /* Changed to percentage */
+    max-width: 450px; /* Added max-width */
+    height: auto;
+    object-fit: contain;
+}
+
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+</style>
+{% endblock meta %}
 
 {% block content %}
+<div class="page-wrapper">
+    {% include 'navbar.html' %}
+    
+    <div class="hero">
+        <div class="content">
+            <h1 class="title">Welcome user,<br>
+                <span class="subtitle">mau sarapan apa hari ini?</span>
+            </h1>
+            <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+        </div>
+    </div>
 
-{% include 'navbar.html' %}
-<br />
-<br />
-<br />
-<h1>Mental Health Tracker</h1>
-
-<br />
-
-<a href="{% url 'main:create_preference_entry' %}">
-    <button>Create New Preference</button>
-</a>
-{% if user.is_authenticated %}
-<a href="{% url 'main:logout' %}">
-    <button>Logout</button>
-</a>
-{% endif %}
+    <div class="recommendation-section">
+        <div class="recommendation-content">
+            <div class="recommendation-text">
+                <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
+                <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
+                <a href="{% url 'main:recommendations' %}">
+                  <button class="recommendation-button">Cari Rekomendasi</button>
+              </a>
+              
+            </div>
+            <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
+        </div>
+    </div>
+</div>
 {% endblock content %}
