@@ -34,3 +34,19 @@
 .search-button:hover {
     background-color: #FF7A33;
 }
+
+.wishlist-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.wishlist-button i {
+    color: black;
+    transition: color 0.3s ease;
+}
+
+.wishlist-button i.fa-heart {
+    color: red;
+}

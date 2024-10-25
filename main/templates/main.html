@@ -661,16 +661,20 @@
     {% endif %} 
     <!-- Rekomendasi Nyarap section di bawah preference-history-section -->
     {% if user_preferences %}
-<div class="rekomendasi-section">
-    <div class="rekomendasi-container">
-        <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
-        <div class="rekomendasi-cards">
-            <!-- Card Item -->
-            <!-- Repeat card items as needed -->
+        <div class="rekomendasi-section">
+            <div class="rekomendasi-container">
+                <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
+                {% include "card_list.html" with recommendations=recommendations %}
+            </div>
         </div>
-    </div>
-</div>
-{% endif %} 
+        {% else %}
+        <div class="text-center py-8">
+            <p class="text-gray-600">No recommendations available yet. Try updating your preferences!</p>
+            <a href="{% url 'main:recommendations' %}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Update Preferences</a>
+        </div>
+        {% endif %}
+    
+
 <div class="category-section">
     <h2 class="category-title">Browse by Category</h2>
     <div class="category-container">
@@ -760,4 +764,3 @@ window.addEventListener('load', function() {
     container.addEventListener('scroll', () => updateScrollButtons(container));
 });
 </script>
-
