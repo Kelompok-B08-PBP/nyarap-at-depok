@@ -16,7 +16,7 @@
                 </a>
                 <a href="#" class="nav-link">Community</a>
                 <a href="#" class="nav-link">Wishlist</a>
-                <a href="#" class="nav-link">Reviews</a>
+                <a href="{% url 'reviews:show_reviews' %}" class="nav-link">Reviews</a>
             </div>
 
             <!-- Auth Buttons -->
@@ -49,7 +49,7 @@
         </a>
         <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Community</a>
         <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Wishlist</a>
-        <a href="{% url 'reviews:create_product_review' %}" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Reviews</a>
+        <a href="{% url 'reviews:show_reviews' %}" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">"nav-link">Reviews</a>
         
         {% if user.is_authenticated %}
         <span class="block py-2 text-black text-sm font-['Sawarabi_Minchfghgthygtfty o']">Welcome, {{ user.username }}</span>

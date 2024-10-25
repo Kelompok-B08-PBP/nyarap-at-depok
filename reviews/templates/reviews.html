@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %} 
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+
+<div class="container mx-auto px-4 py-8">
+
+    <div class="container text-center"> 
+        <a href="{% url 'reviews:add_product_review_ajax' %}">
+            <button class="btn btn-primary btn-lg">
+                + Add review
+            </button>
+        </a>
+    </div>
+    
+    <div id="reviewsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for review in reviews %}
+            {% include 'card_review.html' with review=review %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,16 +1,19 @@
-import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Product(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
-    name = models.CharField(max_length=255)  # Nama makanan
-    time = models.DateField(auto_now_add=True) # Waktu saat membuat review
+    restaurant_name = models.CharField(max_length=255, default="Unknown Restaurant") 
+    food_name = models.CharField(max_length=255) 
     review = models.TextField()  # Review produk
-    rating = models.IntegerField(default=0)  # Rating produk
+    rating = models.IntegerField(default=0)  # Rating out of 5 stars
+    date_added = models.DateTimeField(default=timezone.now)  # Waktu saat membuat review
+    
+    class Meta:
+        ordering = ['-date_added']
 
     def __str__(self):
-        return self.name
+        return f"{self.restaurant_name} - {self.food_name} by {self.user.username}"
 
  
