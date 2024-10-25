@@ -541,22 +541,6 @@
         </div>
     </div>
 
-    <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
-    {% if not request.user.is_authenticated or not user_preferences %}
-    <div class="recommendation-section">
-        <div class="recommendation-content">
-            <div class="recommendation-text">
-                <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
-                <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
-                <a href="{% url 'main:recommendations' %}">
-                    <button class="recommendation-button">Cari Rekomendasi</button>
-                </a>
-            </div>
-            <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
-        </div>
-    </div>
-    {% endif %} <!-- Close recommendation-section condition -->
-
     <div style="width: 100%; max-width: 1200px; margin: 60px auto; padding: 0 20px;">
         <h2 style="text-align: center; color: #2E2C49; font-size: 46px; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 60px;">How Nyarap Works?</h2>
         
@@ -602,6 +586,21 @@
             </div>
         </div>
     </div>
+    <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
+    {% if not request.user.is_authenticated or not user_preferences %}
+    <div class="recommendation-section">
+        <div class="recommendation-content">
+            <div class="recommendation-text">
+                <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
+                <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
+                <a href="{% url 'main:recommendations' %}">
+                    <button class="recommendation-button">Cari Rekomendasi</button>
+                </a>
+            </div>
+            <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
+        </div>
+    </div>
+    {% endif %} <!-- Close recommendation-section condition -->
 
     <!-- Show preference-history-section only if user has set preferences -->
     {% if user_preferences %}
@@ -726,7 +725,7 @@
     </div>
 </div>
 </div>
-
+{% include 'footer.html' %}
 {% endblock content %}
 
 <script>
