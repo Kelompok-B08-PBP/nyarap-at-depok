@@ -65,10 +65,18 @@ def detailer_list(request):
     context = {'recommendations': recommendations}
     return render(request, 'card_list.html', context)
 
-def detail_view(request, id):
-    recommendations = load_recommendations_from_excel()
-    item = next((item for item in recommendations if item['id'] == id), None)
-    if item is None:
-        print(f"Item dengan id {id} tidak ditemukan")
-        return render(request, '404.html')
-    return render(request, 'nyarap_detailer.html', {'item': item})
+    # Mengelola form komentar
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            detailer_id = request.POST.get('detailer_id')  # Mengambil ID tempat makan dari form
+            comment.detailer = Detailer.objects.get(id=detailer_id)
+            comment.save()
+            return redirect('detailer_list')
+    else:
+        form = CommentForm()
+
+    # Kirim data tempat makan dan form ke template
+    return render(request, 'main:main.html', {'detailers': detailers, 'form': form, 'recommendations': recommendations})
+
