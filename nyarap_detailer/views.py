@@ -80,4 +80,27 @@ def detailer_list(request):
     # Kirim data tempat makan dan form ke template
     return render(request, 'main:main.html', {'detailers': detailers, 'form': form, 'recommendations': recommendations})
 
+def preferences_summary(request):
+    # Ambil preferensi dari sesi atau sumber lainnya
+    preference = {
+        'location': request.session.get('location', 'Depok'),
+        'breakfast_type': request.session.get('breakfast_type', 'All'),
+        'price_range': request.session.get('price_range', 'All'),
+    }
 
+    # Ambil data produk dari database
+    detailers = Detailer.objects.all()  # Ambil semua detailer
+
+    # Filter berdasarkan preferensi
+    if preference['location']:
+        detailers = detailers.filter(location=preference['location'])
+    if preference['breakfast_type'] and preference['breakfast_type'] != 'All':
+        detailers = detailers.filter(breakfast_type=preference['breakfast_type'])
+    if preference['price_range'] and preference['price_range'] != 'All':
+        detailers = detailers.filter(price_range=preference['price_range'])
+
+    context = {
+        'preference': preference,
+        'detailers': detailers,
+    }
+    return render(request, 'main:recommendation_list.html', context)
