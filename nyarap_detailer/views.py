@@ -80,3 +80,4 @@ def detailer_list(request):
     # Kirim data tempat makan dan form ke template
     return render(request, 'main:main.html', {'detailers': detailers, 'form': form, 'recommendations': recommendations})
 
+
