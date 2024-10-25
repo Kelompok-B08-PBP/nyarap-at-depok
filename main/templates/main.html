@@ -258,9 +258,10 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+/* Updated category section styles */
 .category-section {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 60px auto;
     padding: 0 20px;
 }
 
@@ -270,36 +271,34 @@
     font-weight: 600;
     color: #333;
     margin-bottom: 40px;
-    position: relative;
     text-align: center;
 }
 
-
 .category-container {
     display: flex;
-    gap: 20px;
+    flex-direction: row;
     overflow-x: auto;
+    gap: 20px;
     padding: 20px 0;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar IE and Edge */
+    scroll-behavior: smooth;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
 .category-container::-webkit-scrollbar {
-    display: none; /* WebKit */
+    display: none;
 }
 
 .category-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    flex: 0 0 auto;
+    width: 160px; /* Fixed width for each item */
     transition: all 0.3s ease;
     cursor: pointer;
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-    min-width: 210px;
+    padding: 10px;
 }
 
 .category-item:hover {
@@ -307,12 +306,12 @@
 }
 
 .category-image {
-    width: 160px;
-    height: 160px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: #f5f5f5;
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
@@ -333,70 +332,45 @@
     font-weight: 500;
     color: #333;
     text-align: center;
-    margin-top: 10px;
-    width: 160px;
+    width: 100%;
     word-wrap: break-word;
 }
 
-/* Scroll buttons (optional) */
-.category-scroll-container {
-    position: relative;
-    margin: 0 -20px;
-    padding: 0 20px;
-}
-
-.scroll-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: white;
-    border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.scroll-button:hover {
-    background: #f5f5f5;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-.scroll-left {
-    left: 5px;
-}
-
-.scroll-right {
-    right: 5px;
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .category-container {
-        gap: 15px;
-        padding: 15px 0;
-    }
-    
     .category-item {
-        min-width: 180px;
+        width: 140px;
     }
     
     .category-image {
-        width: 140px;
-        height: 140px;
+        width: 100px;
+        height: 100px;
     }
     
     .category-name {
-        width: 140px;
         font-size: 14px;
+    }
+    
+    .category-title {
+        font-size: 28px;
+        margin-bottom: 24px;
     }
 }
 
+@media (max-width: 480px) {
+    .category-section {
+        padding: 0 12px;
+    }
+    
+    .category-item {
+        width: 120px;
+    }
+    
+    .category-image {
+        width: 80px;
+        height: 80px;
+    }
+}
 .rekomendasi-section {
     max-width: 1200px;
     margin: 60px auto;
@@ -422,7 +396,8 @@
     content: '';
     position: absolute;
     bottom: -10px;
-    left: 0;
+    left: 50%; /* Start positioning from the center */
+    transform: translateX(-50%); /* Shift the pseudo-element to be centered */
     width: 60px;
     height: 4px;
     background-color: #F6D110;
@@ -582,6 +557,52 @@
     </div>
     {% endif %} <!-- Close recommendation-section condition -->
 
+    <div style="width: 100%; max-width: 1200px; margin: 60px auto; padding: 0 20px;">
+        <h2 style="text-align: center; color: #2E2C49; font-size: 46px; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 60px;">How Nyarap Works?</h2>
+        
+        <div style="display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
+            <!-- Step 1 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">01</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">🍳</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose what to eat</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Browse through our menu and pick your breakfast craving.</p>
+            </div>
+    
+            <!-- Step 2 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">02</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">📍</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose your location</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Set your location to find nearby breakfast options.</p>
+            </div>
+    
+            <!-- Step 3 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">03</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">💰</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose your price range</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Filter the options based on your budget.</p>
+            </div>
+    
+            <!-- Step 4 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">04</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">👤</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Add to Wishlist & Get personalized recommendations</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Login to save your favorite breakfast spots, post in the community, and leave reviews.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Show preference-history-section only if user has set preferences -->
     {% if user_preferences %}
     <div class="preference-history-section">
@@ -651,81 +672,59 @@
     </div>
 </div>
 {% endif %} 
-    <div class="category-section">
-        <h2 class="category-title">Browse by Category</h2>
-        <div class="category-scroll-container">
-            <button class="scroll-button scroll-left" onclick="scrollCategories('left')">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 19L8 12L15 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <button class="scroll-button scroll-right" onclick="scrollCategories('right')">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 5L16 12L9 19" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <div class="category-container">
-                <!-- Existing Categories -->
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Sandwich" />
-                    </div>
-                    <div class="category-name">Sandwich</div>
-                </div>
-                <!-- Other existing items here -->
-                
-                <!-- New Categories -->
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Nasi" />
-                    </div>
-                    <div class="category-name">Nasi</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Roti" />
-                    </div>
-                    <div class="category-name">Roti</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Lontong" />
-                    </div>
-                    <div class="category-name">Lontong</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Cemilan" />
-                    </div>
-                    <div class="category-name">Cemilan</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Minuman" />
-                    </div>
-                    <div class="category-name">Minuman</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Mie" />
-                    </div>
-                    <div class="category-name">Mie</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Telur" />
-                    </div>
-                    <div class="category-name">Telur</div>
-                </div>
-                <div class="category-item">
-                    <div class="category-image">
-                        <img src="/api/placeholder/160/160" alt="Bubur" />
-                    </div>
-                    <div class="category-name">Bubur</div>
-                </div>
+<div class="category-section">
+    <h2 class="category-title">Browse by Category</h2>
+    <div class="category-container">
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Nasi" />
             </div>
+            <div class="category-name">Nasi</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Roti" />
+            </div>
+            <div class="category-name">Roti</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Lontong" />
+            </div>
+            <div class="category-name">Lontong</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Cemilan" />
+            </div>
+            <div class="category-name">Cemilan</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Minuman" />
+            </div>
+            <div class="category-name">Minuman</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Mie" />
+            </div>
+            <div class="category-name">Mie</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Telur" />
+            </div>
+            <div class="category-name">Telur</div>
+        </div>
+        <div class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Bubur" />
+            </div>
+            <div class="category-name">Bubur</div>
         </div>
     </div>
+</div>
 </div>
 
 {% endblock content %}
