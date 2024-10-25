@@ -659,21 +659,92 @@
         </div>
     </div>
     {% endif %} 
-    <!-- Rekomendasi Nyarap section di bawah preference-history-section -->
     {% if user_preferences %}
-        <div class="rekomendasi-section">
-            <div class="rekomendasi-container">
-                <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
-                {% include "card_list.html" with recommendations=recommendations %}
+<div class="rekomendasi-section">
+    <div class="rekomendasi-container">
+        <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
+        
+        {% if recommendations %}
+        <div class="rekomendasi-cards">
+            {% for item in recommendations %}
+            <div class="rekomendasi-card">
+                <div class="rekomendasi-card-image">
+                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                    <div class="rekomendasi-category">{{ item.kategori }}</div>
+                </div>
+                <div class="rekomendasi-card-content">
+                    <div class="rekomendasi-card-header">
+                        <h3 class="rekomendasi-card-title">{{ item.restaurant }}</h3>
+                        <div class="rekomendasi-rating">
+                            <div class="rating-stars">
+                                
+                            </div>
+                            <span class="rating-value">{{ item.rating|floatformat:1 }}</span>
+                        </div>
+                    </div>
+                    <p class="product-name">{{ item.name }}</p>
+                    <div class="rekomendasi-info">
+                        <div class="rekomendasi-location">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            {{ item.location }}
+                        </div>
+                        <div class="rekomendasi-hours">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            {{ item.operational_hours }}
+                        </div>
+                    </div>
+                    <div class="rekomendasi-restaurant-type">
+                        {{ item.restaurant_type }}
+                    </div>
+                    <div class="rekomendasi-card-footer">
+                        <div class="rekomendasi-price">
+                            Rp {{ item.price}}
+                        </div>
+                        <a href="#" class="rekomendasi-detail-btn">Lihat Detail</a>
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% else %}
-        <div class="text-center py-8">
-            <p class="text-gray-600">No recommendations available yet. Try updating your preferences!</p>
-            <a href="{% url 'main:recommendations' %}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Update Preferences</a>
+        
+        {% if recommendations|length >= 6 %}
+        <div class="view-more-container">
+            <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
+                Lihat Semua Rekomendasi
+            </a>
         </div>
         {% endif %}
-    
+        
+        {% else %}
+        <div class="no-recommendations">
+            <div class="no-recommendations-content">
+                <img src="{% static 'images/no-data.svg' %}" alt="No recommendations" class="no-data-image">
+                <p>Belum ada rekomendasi yang sesuai dengan preferensi Anda.</p>
+                <a href="{% url 'main:recommendations' %}" class="update-preferences-btn">
+                    Update Preferensi
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="no-preferences-section">
+    <div class="no-preferences-content">
+        <h2>Belum Ada Preferensi</h2>
+        <p>Atur preferensi Anda untuk mendapatkan rekomendasi sarapan yang sesuai!</p>
+        <a href="{% url 'main:recommendations' %}" class="set-preferences-btn">
+            Atur Preferensi
+        </a>
+    </div>
+</div>
+{% endif %}
 
 <div class="category-section">
     <h2 class="category-title">Browse by Category</h2>
@@ -729,6 +800,7 @@
     </div>
 </div>
 </div>
+
 {% include 'footer.html' %}
 {% endblock content %}
 

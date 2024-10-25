@@ -15,25 +15,137 @@ from .models import UserPreference
 import pandas as pd
 from nyarap_detailer.views import load_recommendations_from_excel
 
+def load_recommendations_from_excel():
+    try:
+        # Load the data from the Excel file
+        df = pd.read_excel('main/data/dataset.xlsx')
+        print(f"Loaded Excel file with {len(df)} rows")
+        
+        # Clean the data first
+        df['Kategori'] = df['Kategori'].str.lower().str.strip()
+        df['Kecamatan'] = df['Kecamatan']
+        
+        # Convert to dictionary grouped by Kategori (breakfast type) and Kecamatan (location)
+        recommendations = {}
+        for _, row in df.iterrows():
+            try:
+                kategori = row['Kategori']  # Already cleaned
+                kecamatan = row['Kecamatan']  # Already cleaned
+                
+                # Initialize dictionary for each Kategori if not present
+                if kategori not in recommendations:
+                    recommendations[kategori] = {}
+
+                # Initialize list for each Kecamatan if not present
+                if kecamatan not in recommendations[kategori]:
+                    recommendations[kategori][kecamatan] = []
+
+                # Clean price data
+                price = str(row['Harga'])
+                if isinstance(row['Harga'], (int, float)):
+                    clean_price = str(row['Harga'])
+                else:
+                    # Remove currency symbol, spaces, commas, and periods
+                    clean_price = price.replace('Rp', '').replace(',', '').replace('.', '').replace(' ', '').strip()
+                
+                # Print debug info for price cleaning
+                print(f"Original price: {price}, Cleaned price: {clean_price}")
+                
+                #Append recommendation details for each Kecamatan
+                recommendations[kategori][kecamatan].append({
+                    'name': str(row['Nama Produk']).strip(),
+                    'restaurant': str(row['nama_restoran']).strip,
+                    'rating': float(row['Rating']) if pd.notnull(row['Rating']) else 0.0,
+                    'operational_hours': str(row['Jam Operasional']).strip(),
+                    'location': str(row['Lokasi']).strip(),
+                    'price': clean_price,
+               
+                })
+                
+            except KeyError as e:
+                print(f"Missing column in row: {str(e)}")
+                continue
+            except Exception as e:
+                print(f"Error processing row: {str(e)}")
+                continue
+
+        return recommendations
+        
+    except Exception as e:
+        print(f"Error loading Excel file: {str(e)}")
+        return {}
+
+
 def show_main(request):
     user_preferences = None
-    recommendations = []
+    filtered_recommendations = []
     
     if request.user.is_authenticated:
         try:
             user_preferences = UserPreference.objects.get(user=request.user)
-            # Only load recommendations if user has preferences
-            recommendations = load_recommendations_from_excel()  # Make sure this function is imported
+            breakfast_type = user_preferences.preferred_breakfast_type.lower()
+            location = user_preferences.preferred_location.strip().title()
+            
+            print(f"Cleaned preferences - Type: {breakfast_type}, Location: {location}")
+            
+            all_recommendations = load_recommendations_from_excel()
+            
+            if breakfast_type in all_recommendations:
+                location_recommendations = all_recommendations[breakfast_type].get(location, [])
+                print(f"Found {len(location_recommendations)} recommendations for location {location}")
+                
+                # Print all recommendations before price filtering
+                for rec in location_recommendations:
+                    print(f"Restaurant: {rec['restaurant']}, Price: {rec['price']}")
+                
+                # Filter by price range
+                price_ranges = {
+                    '0-15000': (0, 15000),
+                    '15000-25000': (15000, 25000),
+                    '25000-50000': (25000, 50000),
+                    '50000-100000': (50000, 100000),
+                    '100000+': (100000, float('inf'))
+                }
+                
+                min_price, max_price = price_ranges[user_preferences.preferred_price_range]
+                print(f"Filtering prices between {min_price} and {max_price}")
+                
+                filtered_recommendations = []
+                for item in location_recommendations:
+                    try:
+                        # Clean price and convert to float
+                        price_str = item['price']
+                        price_value = float(price_str)
+                        print(f"Checking price: {price_value} for {item['name']}")
+                        
+                        if min_price <= price_value <= max_price:
+                            # Use display_price for showing to user
+                      
+                            filtered_recommendations.append(item)
+                            print(f"Added recommendation: {item['name']} with price {item['price']}")
+                    except (ValueError, KeyError) as e:
+                        print(f"Error processing price for item: {item.get('name', 'unknown')}")
+                        print(f"Price value causing error: {item.get('price', 'unknown')}")
+                        print(f"Error details: {str(e)}")
+                        continue
+                
+                print(f"Final filtered recommendations count: {len(filtered_recommendations)}")
+                
         except UserPreference.DoesNotExist:
+            print("No user preferences found")
+            user_preferences = None
+        except Exception as e:
+            print(f"Error in show_main: {str(e)}")
             user_preferences = None
 
     context = {
         'name': request.user.username if request.user.is_authenticated else 'Guest',
         'user_preferences': user_preferences,
-        'recommendations': recommendations,
+        'recommendations': filtered_recommendations,
     }
 
     return render(request, "main.html", context)
+
 
 def create_preference_entry(request):
     form = PreferencesForm(request.POST or None)
@@ -159,8 +271,8 @@ def load_recommendations_from_excel():
     # Convert to dictionary grouped by Kategori (breakfast type) and Kecamatan (location)
     recommendations = {}
     for _, row in df.iterrows():
-        kategori = row['Kategori']  # Map Kategori to breakfast_type
-        kecamatan = row['Kecamatan']  # Map Kecamatan to location
+        kategori = row['Kategori'].lower() # Map Kategori to breakfast_type
+        kecamatan = row['Kecamatan'] # Map Kecamatan to location
 
         # Initialize dictionary for each Kategori if not present
         if kategori not in recommendations:
@@ -170,17 +282,16 @@ def load_recommendations_from_excel():
         if kecamatan not in recommendations[kategori]:
             recommendations[kategori][kecamatan] = []
 
-        # Append recommendation details for each Kecamatan
-        # recommendations[kategori][kecamatan].append({
-        #     'name': row['Nama Produk'],  # Map Nama Produk to product name
-        #     'restaurant': row['Nama Restoran'],  # Name of restaurant
-        #     'restaurant_type': row['Tipe Restoran'],  # Restaurant type
-        #     'rating': row['Rating'],  # Restaurant rating
-        #     'operational_hours': row['Jam Operasional'],  # Restaurant operational hours
-        #     'location': row['Lokasi'],  # Location (address)
-        #     'price': str(row['Harga']),  # Map Harga to price
-        #     'image': row['Link Foto']  # Map Link Foto to image
-        # })
+        #Append recommendation details for each Kecamatan
+        recommendations[kategori][kecamatan].append({
+            'name': row['Nama Produk'],  # Map Nama Produk to product name
+            'restaurant': row['nama_restoran'],  # Name of restaurant
+            'rating': row['Rating'],  # Restaurant rating
+            'operational_hours': row['Jam Operasional'],  # Restaurant operational hours
+            'location': row['Lokasi'],  # Location (address)
+            'price': str(row['Harga']),  # Map Harga to price
+       
+        })
 
     return recommendations
 
@@ -188,6 +299,8 @@ def load_recommendations_from_excel():
 def get_recommendations(breakfast_type, location, price_range):
     # Load recommendations from the Excel file
     recommendations = load_recommendations_from_excel()
+    breakfast_type = breakfast_type.strip().lower()  # Menyesuaikan dengan lowercase
+    location = location.strip().lower()  # Menyesuaikan dengan lowercase
     
     # Get recommendations based on Kategori (breakfast_type) and Kecamatan (location)
     location_recommendations = recommendations.get(breakfast_type, {}).get(location, [])
