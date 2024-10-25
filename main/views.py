@@ -22,7 +22,7 @@ def show_main(request):
         'class': 'PBP D',
         'npm': '2306123456',
         'mood_entries': preference_entries,
-        'last_login': request.COOKIES['last_login'],
+        # 'last_login': request.COOKIES['last_login'],
     }
 
     return render(request, "main.html", context)
@@ -146,3 +146,7 @@ def recommendation_list(request):
         ).order_by('-created_at')
         
     return render(request, 'recommendation_list.html', context)
+
+@login_required
+def wishlist_view(request):
+    return render(request, 'wishlist.html')
