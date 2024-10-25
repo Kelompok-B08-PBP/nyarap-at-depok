@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'nyarap_detailer'
+    'nyarap_detailer',
 ]
 
 MIDDLEWARE = [

@@ -1,6 +1,6 @@
 from django.urls import path
 from main.views import show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences
-from nyarap_detailer.views import detailer_list
+
 
 app_name = 'main'
 
@@ -17,5 +17,4 @@ urlpatterns = [
     path('logout/', logout_user, name='logout'),
     path('recommendations/list/', recommendation_list, name='recommendation_list'),
     path('edit-preferences/', edit_preferences, name='edit_preferences'),
-    path('', detailer_list, name='detailer_list'),
 ]
