@@ -1,42 +1,39 @@
 from django.shortcuts import render, redirect, reverse 
-from main.forms import ProductForm
-from main.models import Product
-from django.http import HttpResponse, HttpResponseRedirect
+from .forms import ProductForm
+from .models import Product
+from django.http import HttpResponse
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
-import datetime
-from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .forms import ProductForm
 
 
 # Create your views here.
 @login_required(login_url='/login')
-def show_main(request):
-
-    context = {
-        'name': request.user.username,
-        'nama_aplikasi': 'shtoree',
-        'last_login': request.COOKIES['last_login'],
-
-    }
-
-    return render(request, "main.html", context)
-
 def create_product_review(request):
-    form = ProductForm(request.POST or None)
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('reviews')  # Redirect to a page displaying reviews or a success message
+    else:
+        form = ProductForm()
+    return render(request, 'create_product_review.html', {'form': form})
 
-    if form.is_valid() and request.method == "POST":
-        produk = form.save(commit=False)
-        produk.user = request.user
-        produk.save()
-        return redirect('main:show_main')
+def show_reviews(request):
+    form = ProductForm()  # Assuming ProductForm is set up for adding a review
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('reviews:show_reviews')  # Redirect back to review page after submission
+    return render(request, 'show_reviews.html', {'form': form})
 
-    context = {'form': form}
-    return render(request, "create_product_review.html", context)
 
 def show_xml(request):
     data = Product.objects.filter(user=request.user)
@@ -75,6 +72,10 @@ def show_json_by_id(request, id):
 #     review.delete()
 #     # Kembali ke halaman awal
 #     return HttpResponseRedirect(reverse('main:show_main'))
+
+def show_reviews(request):
+    reviews = Product.objects.all()  # Fetch all reviews
+    return render(request, 'reviews.html', {'reviews': reviews})
 
 @csrf_exempt
 @require_POST

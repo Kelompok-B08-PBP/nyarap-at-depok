@@ -1,0 +1,18 @@
+<!-- show_reviews.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Submit Your Review</h2>
+
+{% if user.is_authenticated %}
+    <!-- Display the review form for logged-in users -->
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Review</button>
+    </form>
+{% else %}
+    <!-- Prompt for guests to log in -->
+    <p>You need to <a href="{% url 'main:login' %}?next={% url 'reviews:show_reviews' %}">login</a> to submit a review.</p>
+{% endif %}
+{% endblock %}

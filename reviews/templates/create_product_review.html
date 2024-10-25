@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Product Review</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="review-form-container">
+        <h2>Create a Review</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <label for="name">Food Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter the food name" required>
+
+            <label for="review">Your Review:</label>
+            <textarea id="review" name="review" rows="4" placeholder="Write your review here..." required></textarea>
+
+            <label for="rating">Rating (1-5 stars):</label>
+            <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5 stars">5 stars</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 stars">4 stars</label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 stars">3 stars</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 stars">2 stars</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 star">1 star</label>
+            </div>
+
+            <button type="submit">Submit Review</button>
+        </form>
+    </div>
+</body>
+</html>

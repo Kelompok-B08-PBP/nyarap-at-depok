@@ -49,10 +49,10 @@
         </a>
         <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Community</a>
         <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Wishlist</a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Reviews</a>
+        <a href="{% url 'reviews:create_product_review' %}" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Reviews</a>
         
         {% if user.is_authenticated %}
-        <span class="block py-2 text-black text-sm font-['Sawarabi_Mincho']">Welcome, {{ user.username }}</span>
+        <span class="block py-2 text-black text-sm font-['Sawarabi_Minchfghgthygtfty o']">Welcome, {{ user.username }}</span>
         <a href="{% url 'main:logout' %}" 
            class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-['Sawarabi_Mincho'] hover:bg-[#C3372B] hover:text-white transition-colors">
             Logout

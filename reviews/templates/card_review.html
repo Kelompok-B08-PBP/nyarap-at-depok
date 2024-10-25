@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Review Cards</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="review-card-container">
+        <h2>Latest Reviews</h2>
+        <div class="review-card">
+            <div class="food-image">
+                <!-- Add dynamic image here if you have images -->
+                <img src="{% static 'images/sample-food.jpg' %}" alt="Food Image">
+            </div>
+            <div class="review-content">
+                <h3>{{ review.name }}</h3>
+                <p class="time">{{ review.time }}</p>
+                <p>{{ review.review }}</p>
+                <div class="rating">
+                    {% for star in review.rating %}
+                        <span class="star">★</span>
+                    {% endfor %}
+                    {% for _ in '1'|repeat:5-review.rating %}
+                        <span class="star">☆</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
