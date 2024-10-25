@@ -18,19 +18,24 @@ from nyarap_detailer.views import load_recommendations_from_excel
 def show_main(request):
     user_preferences = None
     recommendations = []
+    preference_entries = UserPreference.objects.all()  # Dari aline/nyarap_nanti
     
     if request.user.is_authenticated:
         try:
             user_preferences = UserPreference.objects.get(user=request.user)
             # Only load recommendations if user has preferences
-            recommendations = load_recommendations_from_excel()  # Make sure this function is imported
+            recommendations = load_recommendations_from_excel()  # Import dari dev
         except UserPreference.DoesNotExist:
             user_preferences = None
 
     context = {
         'name': request.user.username if request.user.is_authenticated else 'Guest',
+        'class': 'PBP D', 
+        'npm': '2306123456',  
+        'mood_entries': preference_entries,  
         'user_preferences': user_preferences,
         'recommendations': recommendations,
+        'last_login': request.COOKIES['last_login'],
     }
 
     return render(request, "main.html", context)
@@ -262,22 +267,23 @@ def recommendation_list(request):
 
 @login_required
 def edit_preferences(request):
-    # Ambil preferensi pengguna yang sudah login
     user_preferences = request.user.preferences
-    
-    # Cek apakah metode yang digunakan adalah POST (form disubmit)
+
     if request.method == 'POST':
         form = PreferencesForm(request.POST, instance=request.user)
         if form.is_valid():
-            # Simpan perubahan preferensi
             form.save()
-            return redirect('main:home')  # Redirect ke halaman home setelah preferensi disimpan
+            return redirect('main:home')
     else:
-        # Inisialisasi form dengan preferensi user saat ini
         form = PreferencesForm(instance=request.user)
-    
+
     context = {
         'form': form,
         'user_preferences': user_preferences,
     }
     return render(request, 'edit_preferences.html', context)
+
+
+@login_required
+def wishlist_view(request):
+    return render(request, 'wishlist.html')
