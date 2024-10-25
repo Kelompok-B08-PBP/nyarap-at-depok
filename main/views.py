@@ -23,7 +23,6 @@ def show_main(request):
         'class': 'PBP D',
         'npm': '2306123456',
         'mood_entries': preference_entries,
-        'last_login': request.COOKIES['last_login'],
     }
 
     return render(request, "main.html", context)
@@ -118,7 +117,7 @@ def recommendations(request):
                 request.session['preferred_breakfast_type'] = breakfast_category
                 request.session['preferred_location'] = district_category
                 request.session['preferred_price_range'] = price_range
-                logger.info("Preferences stored in session")
+               
             
             return HttpResponseRedirect(reverse('main:recommendation_list'))
             
