@@ -1,0 +1,765 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+{% load static %}
+
+{% block meta %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Sarala:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.hero {
+    width: 100vw;
+    min-height: calc(100vh + 200px); 
+    background: url("{% static 'images/backgroundhero.png' %}") no-repeat center center;
+    background-size: cover;
+    position: relative;
+    margin-top: 80px;
+    padding-top: 100px;
+    overflow: visible;
+}
+.content {
+    position: absolute;
+    left: 50%;
+    top: 22%; 
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 100%;
+    max-width: 1200px;
+    padding: 30px 20px;
+}
+
+.title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: black;
+}
+
+.subtitle {
+    color: #C3372B;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.description {
+    margin-top: 24px;
+    color: #676B6F;
+    font-size: 32px;
+    font-family: 'Sarala', sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.recommendation-section {
+    width: 80%; /* Full width */
+    max-width: none; /* Remove max-width to allow full width */
+    margin: 0px auto 60px;
+    background: white;
+    box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
+    border-radius: 28px;
+    padding: 40px 80px;
+    position: relative;
+    z-index: 10;
+}
+
+.recommendation-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 60px;
+}
+
+.recommendation-text {
+    width: 50%; /* Adjust width to be more flexible */
+    max-width: none; /* Remove max-width */
+}
+
+.recommendation-image {
+    width: 50%; /* Adjust image width to match text */
+    max-width: none; /* Remove max-width to allow flexibility */
+    height: auto;
+    object-fit: contain;
+}
+
+
+.recommendation-title {
+    color: #C3372B;
+    font-size: 36px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    line-height: 46.40px;
+    margin-bottom: 21px;
+}
+
+.recommendation-description {
+    color: #7B7A7A;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    line-height: 31.40px;
+    margin-bottom: 21px;
+}
+
+.recommendation-button {
+    background: #F6D110;
+    border-radius: 42px;
+    padding: 9px 46px;
+    width: 292px;
+    text-align: center;
+    color: black;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    line-height: 36px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border: none;
+}
+
+.recommendation-button:hover {
+    background: #e6c30f;
+}
+
+
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.preference-history-section {
+    background-color: #383A47;
+    padding: 60px 40px;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 40px;
+    color: white;
+}
+
+.preference-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.preference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.preference-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+    position: relative;
+}
+
+.preference-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.edit-btn {
+    background-color: #F6D110;
+    color: black;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 209, 16, 0.2);
+}
+
+.preference-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px;
+}
+
+.preference-item {
+    background-color: #4C4C4C;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preference-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    background-color: #565656;
+}
+
+.icon {
+    background-color: rgba(255, 91, 0, 0.1);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.icon svg {
+    width: 24px;
+    height: 24px;
+    color: #FF5B00;
+}
+
+.details {
+    flex: 1;
+}
+
+.label {
+    font-size: 14px;
+    color: #A8A8A8;
+    margin-bottom: 4px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.category-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.category-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 40px;
+    position: relative;
+    text-align: center;
+}
+
+
+.category-container {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 20px 0;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.category-container::-webkit-scrollbar {
+    display: none; /* WebKit */
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    min-width: 210px;
+}
+
+.category-item:hover {
+    transform: translateY(-5px);
+}
+
+.category-image {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.category-item:hover .category-image {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    margin-top: 10px;
+    width: 160px;
+    word-wrap: break-word;
+}
+
+/* Scroll buttons (optional) */
+.category-scroll-container {
+    position: relative;
+    margin: 0 -20px;
+    padding: 0 20px;
+}
+
+.scroll-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.scroll-button:hover {
+    background: #f5f5f5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-left {
+    left: 5px;
+}
+
+.scroll-right {
+    right: 5px;
+}
+
+@media (max-width: 768px) {
+    .category-container {
+        gap: 15px;
+        padding: 15px 0;
+    }
+    
+    .category-item {
+        min-width: 180px;
+    }
+    
+    .category-image {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .category-name {
+        width: 140px;
+        font-size: 14px;
+    }
+}
+
+.rekomendasi-section {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.rekomendasi-container {
+    width: 100%;
+}
+
+.rekomendasi-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 40px;
+    position: relative;
+    text-align: center; 
+}
+
+
+.rekomendasi-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.rekomendasi-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.rekomendasi-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.rekomendasi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.rekomendasi-card-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.rekomendasi-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rekomendasi-category {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rekomendasi-card-content {
+    padding: 16px;
+}
+
+.rekomendasi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.rekomendasi-card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.rekomendasi-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.star {
+    color: #F6D110;
+}
+
+.rekomendasi-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #676B6F;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.rekomendasi-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.rekomendasi-price {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.rekomendasi-detail-btn {
+    background: #F6D110;
+    color: black;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.rekomendasi-detail-btn:hover {
+    background: #e6c30f;
+}
+
+@media (max-width: 768px) {
+    .rekomendasi-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .rekomendasi-card {
+        max-width: 100%;
+    }
+}
+
+</style>
+{% endblock meta %}
+
+{% block content %}
+<div class="page-wrapper">
+    {% include 'navbar.html' %}
+    
+    <div class="hero">
+        <div class="content">
+            <h1 class="title">Welcome{% if request.user.is_authenticated %} {{ request.user.username }}{% else %}{% endif %},<br>
+                <span class="subtitle">mau sarapan apa hari ini?</span>
+            </h1>
+            <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+        </div>
+    </div>
+
+    <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
+    {% if not request.user.is_authenticated or not user_preferences %}
+    <div class="recommendation-section">
+        <div class="recommendation-content">
+            <div class="recommendation-text">
+                <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
+                <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
+                <a href="{% url 'main:recommendations' %}">
+                    <button class="recommendation-button">Cari Rekomendasi</button>
+                </a>
+            </div>
+            <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
+        </div>
+    </div>
+    {% endif %} <!-- Close recommendation-section condition -->
+
+    <!-- Show preference-history-section only if user has set preferences -->
+    {% if user_preferences %}
+    <div class="preference-history-section">
+        <div class="preference-container">
+            <div class="preference-header">
+                <h2 class="preference-title">Preferensi Pilihanmu</h2>
+                <a href="{% url 'main:recommendations' %}" class="edit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                    Edit Preferensi
+                </a>
+            </div>
+            <div class="preference-content">
+                <!-- Location Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Lokasi</p>
+                        <p class="value">{{ user_preferences.get_preferred_location_display }}</p>
+                    </div>
+                </div>
+    
+                <!-- Breakfast Type Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 10.5 21h3a2.25 2.25 0 0 0 2.25-2.25V5.25A2.25 2.25 0 0 0 13.5 3Z"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Kategori Makanan</p>
+                        <p class="value">{{ user_preferences.get_preferred_breakfast_type_display }}</p>
+                    </div>
+                </div>
+    
+                <!-- Price Range Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Harga</p>
+                        <p class="value">{{ user_preferences.get_preferred_price_range_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %} 
+    <!-- Rekomendasi Nyarap section di bawah preference-history-section -->
+    {% if user_preferences %}
+<div class="rekomendasi-section">
+    <div class="rekomendasi-container">
+        <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
+        <div class="rekomendasi-cards">
+            <!-- Card Item -->
+            <!-- Repeat card items as needed -->
+        </div>
+    </div>
+</div>
+{% endif %} 
+    <div class="category-section">
+        <h2 class="category-title">Browse by Category</h2>
+        <div class="category-scroll-container">
+            <button class="scroll-button scroll-left" onclick="scrollCategories('left')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 19L8 12L15 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="scroll-button scroll-right" onclick="scrollCategories('right')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5L16 12L9 19" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="category-container">
+                <!-- Existing Categories -->
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Sandwich" />
+                    </div>
+                    <div class="category-name">Sandwich</div>
+                </div>
+                <!-- Other existing items here -->
+                
+                <!-- New Categories -->
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Nasi" />
+                    </div>
+                    <div class="category-name">Nasi</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Roti" />
+                    </div>
+                    <div class="category-name">Roti</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Lontong" />
+                    </div>
+                    <div class="category-name">Lontong</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Cemilan" />
+                    </div>
+                    <div class="category-name">Cemilan</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Minuman" />
+                    </div>
+                    <div class="category-name">Minuman</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Mie" />
+                    </div>
+                    <div class="category-name">Mie</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Telur" />
+                    </div>
+                    <div class="category-name">Telur</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-image">
+                        <img src="/api/placeholder/160/160" alt="Bubur" />
+                    </div>
+                    <div class="category-name">Bubur</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<script>
+function scrollCategories(direction) {
+    const container = document.querySelector('.category-container');
+    const scrollAmount = 220;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const currentScroll = container.scrollLeft;
+    
+    if (direction === 'left' && currentScroll > 0) {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else if (direction === 'right' && currentScroll < maxScroll) {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+    updateScrollButtons(container);
+}
+
+function updateScrollButtons(container) {
+    const leftButton = document.querySelector('.scroll-left');
+    const rightButton = document.querySelector('.scroll-right');
+    
+    leftButton.style.opacity = container.scrollLeft <= 0 ? '0.5' : '1';
+    leftButton.style.pointerEvents = container.scrollLeft <= 0 ? 'none' : 'auto';
+    
+    rightButton.style.opacity = container.scrollLeft >= container.scrollWidth - container.clientWidth ? '0.5' : '1';
+    rightButton.style.pointerEvents = container.scrollLeft >= container.scrollWidth - container.clientWidth ? 'none' : 'auto';
+}
+
+window.addEventListener('load', function() {
+    const container = document.querySelector('.category-container');
+    updateScrollButtons(container);
+    container.addEventListener('scroll', () => updateScrollButtons(container));
+});
+</script>
+

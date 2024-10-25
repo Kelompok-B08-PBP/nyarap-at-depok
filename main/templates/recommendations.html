@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+<div class="min-h-screen bg-gray-50 py-12 mt-0">
+    
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %} rounded-lg">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Add this to pass initial data safely -->
+        {{ initial_data|json_script:"initialData" }}
+
+        <!-- Add the JavaScript -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Safely get initial data from the JSON script tag
+                const initialData = JSON.parse(document.getElementById('initialData').textContent);
+                
+                // Set initial values if they exist
+                if (initialData.breakfast_category) {
+                    const breakfastInput = document.querySelector(`input[name="breakfast_category"][value="${initialData.breakfast_category}"]`);
+                    if (breakfastInput) {
+                        breakfastInput.checked = true;
+                        breakfastInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+                
+                if (initialData.district_category) {
+                    const districtInput = document.querySelector(`input[name="district_category"][value="${initialData.district_category}"]`);
+                    if (districtInput) {
+                        districtInput.checked = true;
+                        districtInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+                
+                if (initialData.price_range) {
+                    const priceInput = document.querySelector(`input[name="price_range"][value="${initialData.price_range}"]`);
+                    if (priceInput) {
+                        priceInput.checked = true;
+                        priceInput.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    }
+                }
+
+                // Add click handlers to all radio buttons for immediate feedback
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        // Remove highlight from all options in the same group
+                        const containers = document.querySelectorAll(`input[name="${this.name}"] + div`);
+                        containers.forEach(container => {
+                            container.classList.remove('ring-2', 'ring-[#FF5B00]');
+                        });
+                        
+                        // Add highlight to selected option
+                        this.nextElementSibling.classList.add('ring-2', 'ring-[#FF5B00]');
+                    });
+                });
+            });
+
+            function submitForm(event) {
+                // Get the form
+                const form = event.target.closest('form');
+                
+                // Basic form validation
+                const breakfast = form.querySelector('input[name="breakfast_category"]:checked');
+                const district = form.querySelector('input[name="district_category"]:checked');
+                const price = form.querySelector('input[name="price_range"]:checked');
+                
+                // Check if all required fields are selected
+                if (!breakfast || !district || !price) {
+                    event.preventDefault();
+                    // Create error message div
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-center';
+                    errorDiv.textContent = 'Mohon pilih kategori sarapan, kecamatan, dan rentang harga terlebih dahulu';
+                    
+                    // Insert error message before the navigation buttons
+                    const navButtons = event.target.closest('.flex');
+                    navButtons.parentNode.insertBefore(errorDiv, navButtons);
+                    
+                    // Scroll to error message
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Remove error message after 3 seconds
+                    setTimeout(() => {
+                        errorDiv.remove();
+                    }, 3000);
+                    
+                    return false;
+                }
+                
+                // If validation passes, submit the form
+                form.action = "{% url 'main:recommendation_list' %}";
+                return true;
+            }
+        </script>
+
+        <!-- Rest of your form content... -->
+        <form method="POST" class="space-y-6" onsubmit="return submitForm(event)">
+            {% csrf_token %}
+    <!-- Breakfast Categories -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+        {% for type, label in breakfast_choices.items %}
+        <label class="relative cursor-pointer">
+            <input type="radio" name="breakfast_category" value="{{ type }}" class="peer sr-only" 
+                   {% if initial_data.breakfast_category == type %}checked{% endif %}>
+            <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                <div class="flex flex-col items-center">
+                    <img src="{% static 'images/'|add:type|add:'.png' %}" alt="{{ label }}" class="w-20 h-20 mb-2">
+                    <span class="text-gray-700 font-medium">{{ label }}</span>
+                </div>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="min-h-screen bg-gray-50">
+        <!-- Hero Section -->
+        <div class="relative h-[300px] bg-gradient-to-b from-black to-gray-900">
+            <!-- Background Image -->
+            <img src="{% static 'images/background-header.png' %}" 
+                 alt="Breakfast Header" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-60">
+            
+            <!-- Overlay Content -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Pilih preferensi sarapanmu
+                </h1>
+                <p class="text-lg text-gray-200 max-w-2xl">
+                    {% if is_authenticated %}
+                        Hai {{ name }}, ayo tentukan sarapan favoritmu!
+                    {% else %}
+                        Temukan rekomendasi sarapan terbaik untukmu
+                    {% endif %}
+                </p>
+            </div>
+        </div>    
+
+<div class="min-h-screen bg-gray-50 py-0 mt-0">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md mt-12">
+        <!-- Form Header -->
+        <div class="text-center mb-8">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Kategori Sarapan</h2>
+            <p class="text-gray-500 text-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+            {% if is_authenticated %}
+            <p class="mt-2 text-gray-600">Hai {{ name }}, preferensimu akan disimpan untuk referensi di masa mendatang</p>
+            {% else %}
+            <p class="mt-2 text-gray-600">Silakan login untuk menyimpan preferensimu</p>
+            {% endif %}
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %} rounded-lg">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Recommendation Form -->
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Breakfast Categories Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+                <!-- Nasi -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="nasi" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/nasi.png' %}" alt="Nasi" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Nasi</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Mie -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="mie" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/mie.png' %}" alt="Mie" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Mie</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Bubur -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="bubur" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/bubur.png' %}" alt="Bubur" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Bubur</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Lontong -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="lontong" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/lontong.png' %}" alt="Lontong" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Lontong</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Roti -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="roti" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/roti.png' %}" alt="Roti" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Roti</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Cemilan -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="cemilan" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/cemilan.png' %}" alt="Cemilan" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Cemilan</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Telur -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="telur" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/telur.png' %}" alt="Telur" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Telur</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Minuman -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="minuman" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/minuman.png' %}" alt="Minuman" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Minuman</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Masih Bingung -->
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="masih_bingung" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/tandatanya.png' %}" alt="Masih Bingung" class="w-14 h-14 mb-2">
+                            <span class="text-gray-700 font-medium">Masih Bingung...</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- District Button Selection -->
+            <div class="text-center mb-8 mt-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Lokasi</h2>
+                <p class="text-gray-500 text-lg">Pilih kecamatan tempat kamu ingin sarapan di Depok.</p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <!-- Beji -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="beji" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Beji</span>
+                    </div>
+                </label>
+
+                <!-- Bojongsari -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="bojongsari" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Bojongsari</span>
+                    </div>
+                </label>
+
+                <!-- Cilodong -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="cilodong" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Cilodong</span>
+                    </div>
+                </label>
+
+                <!-- Cimanggis -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="cimanggis" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Cimanggis</span>
+                    </div>
+                </label>
+
+                <!-- Cinere -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="cinere" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Cinere</span>
+                    </div>
+                </label>
+
+                <!-- Cipayung -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="cipayung" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Cipayung</span>
+                    </div>
+                </label>
+
+                <!-- Limo -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="limo" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Limo</span>
+                    </div>
+                </label>
+
+                <!-- Pancoran Mas -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="pancoran_mas" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Pancoran Mas</span>
+                    </div>
+                </label>
+
+                <!-- Sawangan -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="sawangan" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Sawangan</span>
+                    </div>
+                </label>
+
+                <!-- Sukmajaya -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="sukmajaya" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Sukmajaya</span>
+                    </div>
+                </label>
+
+                <!-- Tapos -->
+                <label class="relative">
+                    <input type="radio" name="district_category" value="tapos" class="peer sr-only">
+                    <div class="px-6 py-3 bg-white border-2 border-gray-200 rounded-full cursor-pointer transition-all hover:border-[#FF5B00] hover:shadow-md peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] peer-checked:text-white">
+                        <span class="font-medium">Tapos</span>
+                    </div>
+                </label>
+            </div>
+
+        <!-- Price Range Selection -->
+        <div class="text-center mb-8 mt-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Rentang Harga</h2>
+            <p class="text-gray-500 text-lg">Pilih rentang harga sarapan yang kamu inginkan.</p>
+        </div>
+
+        <div class="max-w-2xl mx-auto mb-8">
+            <!-- Price Range Radio Group -->
+            <div class="space-y-4">
+                <!-- Under 15k -->
+                <label class="relative block cursor-pointer">
+                    <input type="radio" name="price_range" value="0-15000" class="peer sr-only">
+                    <div class="p-4 bg-white border-2 border-gray-200 rounded-lg transition-all hover:border-[#FF5B00] peer-checked:border-[#FF5B00] peer-checked:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] mr-3">
+                                    <div class="hidden peer-checked:block w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="font-medium text-gray-900">Dibawah Rp 15.000</span>
+                            </div>
+                            <span class="text-[#FF5B00] font-medium">💰</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- 15k - 25k -->
+                <label class="relative block cursor-pointer">
+                    <input type="radio" name="price_range" value="15000-25000" class="peer sr-only">
+                    <div class="p-4 bg-white border-2 border-gray-200 rounded-lg transition-all hover:border-[#FF5B00] peer-checked:border-[#FF5B00] peer-checked:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] mr-3">
+                                    <div class="hidden peer-checked:block w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="font-medium text-gray-900">Rp 15.000 - Rp 25.000</span>
+                            </div>
+                            <span class="text-[#FF5B00] font-medium">💰💰</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- 25k - 50k -->
+                <label class="relative block cursor-pointer">
+                    <input type="radio" name="price_range" value="25000-50000" class="peer sr-only">
+                    <div class="p-4 bg-white border-2 border-gray-200 rounded-lg transition-all hover:border-[#FF5B00] peer-checked:border-[#FF5B00] peer-checked:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] mr-3">
+                                    <div class="hidden peer-checked:block w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="font-medium text-gray-900">Rp 25.000 - Rp 50.000</span>
+                            </div>
+                            <span class="text-[#FF5B00] font-medium">💰💰💰</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- 50k - 100k -->
+                <label class="relative block cursor-pointer">
+                    <input type="radio" name="price_range" value="50000-100000" class="peer sr-only">
+                    <div class="p-4 bg-white border-2 border-gray-200 rounded-lg transition-all hover:border-[#FF5B00] peer-checked:border-[#FF5B00] peer-checked:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] mr-3">
+                                    <div class="hidden peer-checked:block w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="font-medium text-gray-900">Rp 50.000 - Rp 100.000</span>
+                            </div>
+                            <span class="text-[#FF5B00] font-medium">💰💰💰💰</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Above 100k -->
+                <label class="relative block cursor-pointer">
+                    <input type="radio" name="price_range" value="100000+" class="peer sr-only">
+                    <div class="p-4 bg-white border-2 border-gray-200 rounded-lg transition-all hover:border-[#FF5B00] peer-checked:border-[#FF5B00] peer-checked:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#FF5B00] peer-checked:bg-[#FF5B00] mr-3">
+                                    <div class="hidden peer-checked:block w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="font-medium text-gray-900">Diatas Rp 100.000</span>
+                            </div>
+                            <span class="text-[#FF5B00] font-medium">💰💰💰💰💰</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+ <!-- Navigation Buttons -->
+<div class="flex justify-center gap-4">
+    <!-- Back Button -->
+    <a href="{% url 'main:show_main' %}" class="inline-block">
+        <button type="button" 
+                class="px-8 py-2 bg-black text-white rounded-full transition-all hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 focus:outline-none active:bg-gray-900">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                <span>Kembali ke Home</span>
+            </div>
+        </button>
+    </a>
+
+    <!-- Continue/Submit Button -->
+    <button type="submit" 
+            class="px-8 py-2 bg-white border-2 border-black rounded-full transition-all hover:bg-gray-50 hover:border-gray-800 focus:ring-2 focus:ring-black focus:outline-none active:bg-gray-100"
+            onclick="submitForm(event)">
+        <div class="flex items-center">
+            <span>Lihat Rekomendasi</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+        </div>
+    </button>
+</div>
+
+<!-- Add this script section at the bottom of your template -->
+<script>
+function submitForm(event) {
+    event.preventDefault();  // Prevent default form submission
+    
+    // Get the form
+    const form = event.target.closest('form');
+    
+    // Basic form validation
+    const breakfast = form.querySelector('input[name="breakfast_category"]:checked');
+    const district = form.querySelector('input[name="district_category"]:checked');
+    const price = form.querySelector('input[name="price_range"]:checked');
+    
+    // Check if all required fields are selected
+    if (!breakfast || !district || !price) {
+        // Create error message div
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-center';
+        errorDiv.textContent = 'Mohon pilih kategori sarapan, kecamatan, dan rentang harga terlebih dahulu';
+        
+        // Insert error message before the navigation buttons
+        const navButtons = event.target.closest('.flex');
+        navButtons.parentNode.insertBefore(errorDiv, navButtons);
+        
+        // Scroll to error message
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Remove error message after 3 seconds
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 3000);
+        
+        return false;
+    }
+    
+    // Create FormData object
+    const formData = new FormData(form);
+
+    // Log the form data for debugging
+    console.log('Form Data:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    // Submit the form
+    form.submit();
+}
+</script>
+{% endblock %}

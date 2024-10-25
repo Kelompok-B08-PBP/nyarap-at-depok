@@ -1,0 +1,165 @@
+{% load static %}
+<nav class="bg-[#F6D110] shadow-lg fixed top-0 left-0 z-40 w-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-[80px]">
+            <!-- Logo and Brand -->
+            <div class="flex items-center gap-2">
+                <img src="{% static 'images/LOGO_KECIL.png' %}" alt="Nyarap Logo">
+                <span class="text-xl font-bold font-lexend">Nyarap @Depok</span>
+            </div>
+
+            <!-- Navigation Links - Desktop -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{% url 'main:show_main' %}" 
+                   class="nav-link {% if request.path == '/' %}active{% endif %}">
+                   Home
+                </a>
+                <a href="#" class="nav-link">Community</a>
+                <a href="#" class="nav-link">Wishlist</a>
+                <a href="#" class="nav-link">Reviews</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="hidden md:flex items-center gap-3">
+                {% if user.is_authenticated %}
+                <span class="text-sm font-semi-bold font-lexend">Welcome, {{ user.username }}</span>
+                <a href="{% url 'main:logout' %}" class="auth-btn-logout">Logout</a>
+                {% else %}
+                <a href="{% url 'main:login' %}" class="auth-btn-login">Login</a>
+                <a href="{% url 'main:register' %}" class="auth-btn-register">Register</a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden flex items-center">
+                <button class="mobile-menu-button">
+                    <svg class="w-5 h-5 text-black" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu hidden md:hidden px-4 pb-3 bg-[#F6D110]">
+        <a href="{% url 'main:show_main' %}" 
+           class="block py-2 text-sm font-lexend {% if request.path == '/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
+           Home
+        </a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Community</a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Wishlist</a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Reviews</a>
+        
+        {% if user.is_authenticated %}
+        <span class="block py-2 text-black text-sm font-lexend">Welcome, {{ user.username }}</span>
+        <a href="{% url 'main:logout' %}" 
+           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-lexend hover:bg-[#C3372B] hover:text-white transition-colors">
+            Logout
+        </a>
+        {% else %}
+        <a href="{% url 'main:login' %}" 
+           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-lexend hover:bg-[#C3372B] hover:text-white transition-colors">
+            Login
+        </a>
+        <a href="{% url 'main:register' %}" 
+           class="block text-center py-1.5 mt-2 bg-[#C3372B] text-white rounded-lg text-sm font-lexend hover:bg-[#A52D22] transition-colors">
+            Register
+        </a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Styles -->
+<style>
+    /* Import Lexend font */
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap');
+
+    /* Apply Lexend font globally */
+    * {
+        font-family: 'Lexend', sans-serif;
+    }
+
+    /* Hover underline effect */
+    .nav-link {
+        color: #000000;
+        position: relative;
+        transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #C3372B;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover {
+        color: #C3372B;
+    }
+
+    .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Active link style */
+    .nav-link.active {
+        color: #C3372B;
+    }
+
+    .nav-link.active::after {
+        width: 100%;
+    }
+
+    /* Auth buttons */
+    .auth-btn-login {
+        padding: 4px 1.5rem;
+        border: 1px solid #C3372B;
+        color: #C3372B;
+        border-radius: 8px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .auth-btn-login:hover {
+        background-color: #C3372B;
+        color: white;
+    }
+
+    .auth-btn-register {
+        padding: 4px 1.5rem;
+        background-color: #C3372B;
+        color: white;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .auth-btn-register:hover {
+        background-color: #A52D22;
+    }
+
+    .auth-btn-logout {
+        padding: 4px 1.5rem;
+        border: 1px solid #C3372B;
+        color: #C3372B;
+        border-radius: 8px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .auth-btn-logout:hover {
+        background-color: #C3372B;
+        color: white;
+    }
+</style>
+
+<!-- Script -->
+<script>
+    const btn = document.querySelector("button.mobile-menu-button");
+    const menu = document.querySelector(".mobile-menu");
+    btn.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+    });
+</script>

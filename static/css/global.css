@@ -1,0 +1,36 @@
+.main-container {
+    padding-top: 120px;  /* Untuk memberikan ruang di bawah navbar */
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.site-title {
+    font-size: 48px;
+    margin-bottom: 40px;
+}
+
+.search-button-container {
+    margin-top: 30px;
+}
+
+.search-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #FF5B00;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.search-button:hover {
+    background-color: #FF7A33;
+}
