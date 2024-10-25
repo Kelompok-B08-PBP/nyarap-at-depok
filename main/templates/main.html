@@ -138,6 +138,247 @@
     display: flex;
     flex-direction: column;
 }
+
+.preference-history-section {
+    background-color: #383A47;
+    padding: 50px; /* Adjusted padding for more height */
+    width: 100vw; /* Full width */
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 40px;
+    color: white;
+}
+
+.preference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Ensure header takes full width */
+    max-width: 1200px; /* Limit max width to prevent content overflow */
+    margin-bottom: 30px;
+}
+.preference-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+}
+
+.preference-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+}
+
+.edit-btn {
+    background-color: #F6D110;
+    color: black;
+}
+
+.delete-btn {
+    background-color: #C3372B;
+}
+
+.preference-content {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
+    margin-top: 20px;
+    max-width: 1200px; /* Ensures content doesn't stretch too far */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.preference-item {
+    background-color: #4C4C4C;
+    width: 200px;
+    height: 60px;
+    border-radius: 15px;
+}
+
+.preference-history-section {
+    background-color: #383A47;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 100%;
+    margin: 20px auto;
+    color: white;
+}
+
+.preference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preference-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+}
+
+.preference-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #F6D110;
+    color: black;
+}
+
+.delete-btn {
+    background-color: #C3372B;
+}
+
+.preference-content {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.preference-item {
+    background-color: #4C4C4C;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 250px;
+    height: 100px;
+}
+
+.icon {
+    margin-right: 15px;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 14px;
+    color: #A8A8A8;
+}
+
+.value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.preference-history-section {
+    background-color: #383A47;
+    padding: 50px; /* Adjusted padding for more height */
+    width: 100vw; /* Full width */
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 40px;
+    color: white;
+}
+
+.preference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-bottom: 30px;
+}
+
+.preference-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+}
+
+.preference-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+}
+
+.edit-btn {
+    background-color: #F6D110;
+    color: black;
+}
+
+.delete-btn {
+    background-color: #C3372B;
+}
+
+.preference-content {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap; /* Ensures responsiveness */
+    gap: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.preference-item {
+    background-color: #4C4C4C;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 250px;
+    height: 100px;
+}
+
+.icon {
+    margin-right: 15px;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 14px;
+    color: #A8A8A8;
+}
+
+.value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
 </style>
 {% endblock meta %}
 
@@ -147,26 +388,88 @@
     
     <div class="hero">
         <div class="content">
-            <h1 class="title">Welcome user,<br>
+            <h1 class="title">Welcome {% if request.user.is_authenticated %}{{ request.user.username }}{% else %}user{% endif %},<br>
                 <span class="subtitle">mau sarapan apa hari ini?</span>
             </h1>
             <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
         </div>
     </div>
 
+    <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
+    {% if not request.user.is_authenticated or not user_preferences %}
     <div class="recommendation-section">
         <div class="recommendation-content">
             <div class="recommendation-text">
                 <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
                 <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
                 <a href="{% url 'main:recommendations' %}">
-                  <button class="recommendation-button">Cari Rekomendasi</button>
-              </a>
-              
+                    <button class="recommendation-button">Cari Rekomendasi</button>
+                </a>
             </div>
             <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
         </div>
     </div>
+    {% endif %} <!-- Close recommendation-section condition -->
+
+    <!-- Show preference-history-section only if user has set preferences -->
+    {% if user_preferences %}
+    <div class="preference-history-section">
+        <div class="preference-header">
+            <h2 class="preference-title">Preferensi Pilihanmu</h2>
+            <div class="preference-actions">
+                <a href="{% url 'main:edit_preferences' %}" class="edit-btn">Edit Preferensi</a>
+            </div>
+        </div>
+        <div class="preference-content">
+            <!-- Location Preference Item -->
+            <div class="preference-item">
+                <div class="icon">
+                    <div class="w-10 h-10 rounded-full bg-[#FF5B00] flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="details">
+                    <p class="label">Lokasi</p>
+                    <p class="value">{{ user_preferences.get_preferred_location_display }}</p>
+                </div>
+            </div>
+    
+            <!-- Breakfast Type Preference Item -->
+            <div class="preference-item">
+                <div class="icon">
+                    <div class="w-10 h-10 rounded-full bg-[#FF5B00] flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="details">
+                    <p class="label">Kategori Makanan</p>
+                    <p class="value">{{ user_preferences.get_preferred_breakfast_type_display }}</p>
+                </div>
+            </div>
+    
+            <!-- Price Range Preference Item -->
+            <div class="preference-item">
+                <div class="icon">
+                    <div class="w-10 h-10 rounded-full bg-[#FF5B00] flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="details">
+                    <p class="label">Harga</p>
+                    <p class="value">{{ user_preferences.get_preferred_price_range_display }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %} <!-- Close preference-history-section condition -->
 </div>
-{% include 'footer.html' %}
+
 {% endblock content %}
+

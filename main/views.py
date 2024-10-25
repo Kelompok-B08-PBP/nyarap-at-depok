@@ -16,13 +16,16 @@ import pandas as pd
 
 
 def show_main(request):
-    preference_entries = UserPreference.objects.all()
+    user_preferences = None
+    if request.user.is_authenticated:
+        try:
+            user_preferences = UserPreference.objects.get(user=request.user)
+        except UserPreference.DoesNotExist:
+            user_preferences = None  # User has not set preferences yet
 
     context = {
-        'name': request.user.username,
-        'class': 'PBP D',
-        'npm': '2306123456',
-        'mood_entries': preference_entries,
+        'name': request.user.username if request.user.is_authenticated else 'Guest',
+        'user_preferences': user_preferences,
     }
 
     return render(request, "main.html", context)
@@ -252,3 +255,24 @@ def recommendation_list(request):
 
     return render(request, 'recommendation_list.html', context)
 
+@login_required
+def edit_preferences(request):
+    # Ambil preferensi pengguna yang sudah login
+    user_preferences = request.user.preferences
+    
+    # Cek apakah metode yang digunakan adalah POST (form disubmit)
+    if request.method == 'POST':
+        form = PreferencesForm(request.POST, instance=request.user)
+        if form.is_valid():
+            # Simpan perubahan preferensi
+            form.save()
+            return redirect('main:home')  # Redirect ke halaman home setelah preferensi disimpan
+    else:
+        # Inisialisasi form dengan preferensi user saat ini
+        form = PreferencesForm(instance=request.user)
+    
+    context = {
+        'form': form,
+        'user_preferences': user_preferences,
+    }
+    return render(request, 'edit_preferences.html', context)
