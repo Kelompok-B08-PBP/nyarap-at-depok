@@ -27,8 +27,8 @@ SECRET_KEY = 'django-insecure-#r8z7-fal_cfwxz88l(+7apsnmxuzsdyea+-f=g22978)i(jn_
 PRODUCTION = os.getenv("PRODUCTION", False)
 DEBUG = not PRODUCTION
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "valiza.nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://pbp.cs.ui.ac.id/valiza.nadya/nyarapatdepok", "https://pbp.cs.ui.ac.id/valiza.nadya/nyarapatdepok"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'nyarap_detailer',
     'nyarap_nanti'
 ]
 
@@ -132,5 +133,5 @@ else:
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# settings.py
+
 LOGIN_URL = 'main:login'

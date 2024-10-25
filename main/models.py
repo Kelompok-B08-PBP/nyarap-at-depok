@@ -34,6 +34,9 @@ class UserPreference(models.Model):
         ('100000+', 'Diatas Rp 100.000'),
     ]
 
+    def __str__(self):
+        return f"{self.user.username}'s Preferences"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     preferred_location = models.CharField(max_length=255, choices=KECAMATAN_CHOICES)
