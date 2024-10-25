@@ -103,33 +103,40 @@
 {% endblock meta %}
 
 {% block content %}
+<h1>Rekomendasi Tempat Makan</h1>
 
-<div class="product-box">
-    <div class="product-image">
-        <img src="{% static 'images/bingung.png' %}" alt="Product Image">
-    </div>
-    <div class="product-details">
-        <h2>Nama Restoran</h2>
-        <p><strong>Harga:</strong> Rp 100.000</p>
-        <p><strong>Jam Operasional:</strong> 10:00 - 22:00</p>
-        <p><strong>Lokasi:</strong> Depok, Jawa Barat</p>
-        <p><strong>Rating:</strong> 4.5/5</p>
+<div class="container">
+    {% for item in recommendations %}
+    <div class="product-box">
+        <div class="product-image">
+            <img src="{{ item.image }}" alt="{{ item.name }}">
+        </div>
+        <div class="product-details">
+            <h2>{{ item.name }}</h2>
+            <p><strong>Restoran:</strong> {{ item.restaurant }}</p>
+            <p><strong>Harga:</strong> {{ item.price }}</p>
+            <p><strong>Jam Operasional:</strong> {{ item.operational_hours }}</p>
+            <p><strong>Lokasi:</strong> {{ item.location }}</p>
+            <p><strong>Rating:</strong> {{ item.rating }}</p>
 
-        <!-- Wishlist Button -->
-        <button class="wishlist-button" onclick="toggleWishlist(this)">
-            <i class="fa fa-heart-o"></i>
-        </button>
+            <!-- Wishlist Button -->
+            <button class="wishlist-button" onclick="toggleWishlist(this)">
+                <i class="fa fa-heart-o"></i>
+            </button>
 
-        <!-- Komentar -->
-        <div class="comment-section">
-            <form>
-                <textarea name="comment" placeholder="Tulis komentar..."></textarea>
-                <button type="submit">Kirim</button>
-            </form>
+            <!-- Komentar -->
+            <div class="comment-section">
+                <form method="POST">
+                    {% csrf_token %}
+                    <textarea name="comment" placeholder="Tulis komentar..."></textarea>
+                    <input type="hidden" name="detailer_id" value="{{ item.id }}"> <!-- Jika Anda memiliki ID di item -->
+                    <button type="submit">Kirim</button>
+                </form>
+            </div>
         </div>
     </div>
+    {% endfor %}
 </div>
-
 
 <script>
     function toggleWishlist(button) {

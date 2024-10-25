@@ -1,6 +1,6 @@
 from django.urls import path
 from main.views import show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences
-from nyarap_detailer.views import detailer_list 
+from nyarap_detailer.views import detailer_list
 
 app_name = 'main'
 

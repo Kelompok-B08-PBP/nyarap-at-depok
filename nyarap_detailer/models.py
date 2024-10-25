@@ -2,13 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User  # Jika ada sistem pengguna
 
 class Detailer(models.Model):
-    resto_name = models.CharField(max_length=200)
-    description = models.TextField()
-    time = models.CharField(max_length=100)
-    price = models.CharField(max_length=100)
-    location = models.CharField(max_length=200)
-    rating = models.DecimalField(max_digits=2, decimal_places=1)
-
+    name = models.CharField(max_length=255, default="no name")  # Nama produk
+    restaurant = models.CharField(max_length=255, default="no name")  # Nama restoran
+    rating = models.FloatField(default=0)  # Rating restoran
+    operational_hours = models.CharField(max_length=100, default="no name")  # Jam operasional
+    location = models.CharField(max_length=255, default="no name")  # Lokasi
+    price = models.IntegerField(default=0)  # Harga
+    image = models.URLField(default="no images")  # Link foto produk
     def __str__(self):
         return self.resto_name
 
