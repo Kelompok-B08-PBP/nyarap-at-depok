@@ -28,7 +28,7 @@ PRODUCTION = os.getenv("PRODUCTION", False)
 DEBUG = not PRODUCTION
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://pbp.cs.ui.ac.id/valiza.nadya/nyarapatdepok", "https://pbp.cs.ui.ac.id/valiza.nadya/nyarapatdepok"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
 
 
 # Application definition
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'nyarap_detailer'
+    'nyarap_detailer',
 ]
 
 MIDDLEWARE = [

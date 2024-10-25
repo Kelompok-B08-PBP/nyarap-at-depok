@@ -13,19 +13,24 @@ from django.urls import reverse
 from .forms import PreferencesForm  # Updated import name
 from .models import UserPreference
 import pandas as pd
-
+from nyarap_detailer.views import load_recommendations_from_excel
 
 def show_main(request):
     user_preferences = None
+    recommendations = []
+    
     if request.user.is_authenticated:
         try:
             user_preferences = UserPreference.objects.get(user=request.user)
+            # Only load recommendations if user has preferences
+            recommendations = load_recommendations_from_excel()  # Make sure this function is imported
         except UserPreference.DoesNotExist:
-            user_preferences = None  # User has not set preferences yet
+            user_preferences = None
 
     context = {
         'name': request.user.username if request.user.is_authenticated else 'Guest',
         'user_preferences': user_preferences,
+        'recommendations': recommendations,
     }
 
     return render(request, "main.html", context)
