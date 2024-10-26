@@ -261,10 +261,9 @@
 /* Updated category section styles */
 .category-section {
     max-width: 1200px;
-    margin: 60px auto;
+    margin: 0 auto 60px; /* Changed from margin: 60px auto to remove top margin */
     padding: 0 20px;
 }
-
 .category-title {
     font-family: 'Montserrat', sans-serif;
     font-size: 36px;
@@ -525,6 +524,92 @@
     }
 }
 
+.rekomendasi-main-section {
+    padding: 60px 20px;
+    background: #FFFFFF;
+    margin-bottom: 60px;
+}
+
+.rekomendasi-main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.rekomendasi-main-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #2E2C49;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.rekomendasi-main-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.rekomendasi-main-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.view-more-container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.view-more-btn {
+    display: inline-block;
+    background: #F6D110;
+    color: #2d3748;
+    padding: 12px 32px;
+    border-radius: 42px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.view-more-btn:hover {
+    background: #e6c30f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 209, 16, 0.2);
+}
+
+@media (max-width: 1200px) {
+    .rekomendasi-main-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .rekomendasi-main-section {
+        padding: 40px 16px;
+    }
+
+    .rekomendasi-main-title {
+        font-size: 28px;
+        margin-bottom: 32px;
+    }
+
+    .rekomendasi-main-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
 </style>
 {% endblock meta %}
 
@@ -659,150 +744,94 @@
         </div>
     </div>
     {% endif %} 
-    {% if user_preferences %}
-<div class="rekomendasi-section">
-    <div class="rekomendasi-container">
-        <h2 class="rekomendasi-title">Rekomendasi Nyarap</h2>
-        
-        {% if recommendations %}
-        <div class="rekomendasi-cards">
-            {% for item in recommendations %}
-            <div class="rekomendasi-card">
-                <div class="rekomendasi-card-image">
-                    <img src="{{ item.image }}" alt="{{ item.name }}">
-                    <div class="rekomendasi-category">{{ item.kategori }}</div>
-                </div>
-                <div class="rekomendasi-card-content">
-                    <div class="rekomendasi-card-header">
-                        <h3 class="rekomendasi-card-title">{{ item.restaurant }}</h3>
-                        <div class="rekomendasi-rating">
-                            <div class="rating-stars">
-                                
-                            </div>
-                            <span class="rating-value">{{ item.rating|floatformat:1 }}</span>
-                        </div>
-                    </div>
-                    <p class="product-name">{{ item.name }}</p>
-                    <div class="rekomendasi-info">
-                        <div class="rekomendasi-location">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                            {{ item.location }}
-                        </div>
-                        <div class="rekomendasi-hours">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M12 6v6l4 2"></path>
-                            </svg>
-                            {{ item.operational_hours }}
-                        </div>
-                    </div>
-                    <div class="rekomendasi-restaurant-type">
-                        {{ item.restaurant_type }}
-                    </div>
-                    <div class="rekomendasi-card-footer">
-                        <div class="rekomendasi-price">
-                            Rp {{ item.price}}
-                        </div>
-                        <a href="#" class="rekomendasi-detail-btn">Lihat Detail</a>
-                    </div>
-                </div>
+
+    {% if recommendations %}
+    <section class="rekomendasi-main-section">
+        <div class="rekomendasi-main-container">
+            <h2 class="rekomendasi-main-title">Rekomendasi Nyarap </h2>
+            <div class="rekomendasi-main-grid">
+                {% for item in recommendations|slice:":4" %}
+                    {% include 'product_card.html' with item=item %}
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-        
-        {% if recommendations|length >= 6 %}
-        <div class="view-more-container">
-            <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
-                Lihat Semua Rekomendasi
-            </a>
-        </div>
-        {% endif %}
-        
-        {% else %}
-        <div class="no-recommendations">
-            <div class="no-recommendations-content">
-                <img src="{% static 'images/no-data.svg' %}" alt="No recommendations" class="no-data-image">
-                <p>Belum ada rekomendasi yang sesuai dengan preferensi Anda.</p>
-                <a href="{% url 'main:recommendations' %}" class="update-preferences-btn">
-                    Update Preferensi
+            
+            {% if recommendations|length > 4 %}
+            <div class="view-more-container">
+                <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
+                    Lihat Semua Rekomendasi
                 </a>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
-    </div>
-</div>
-{% else %}
-<div class="no-preferences-section">
-    <div class="no-preferences-content">
-        <h2>Belum Ada Preferensi</h2>
-        <p>Atur preferensi Anda untuk mendapatkan rekomendasi sarapan yang sesuai!</p>
-        <a href="{% url 'main:recommendations' %}" class="set-preferences-btn">
-            Atur Preferensi
-        </a>
-    </div>
-</div>
-{% endif %}
+    </section>
+    {% endif %}
+    
+<!-- main.html or wherever you have your category links -->
 
 <div class="category-section">
     <h2 class="category-title">Browse by Category</h2>
     <div class="category-container">
-        <div class="category-item">
+        <!-- Define categories explicitly to avoid template tag issues -->
+        <a href="{% url 'main:browse_category' category='nasi' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Nasi" />
             </div>
             <div class="category-name">Nasi</div>
-        </div>
-        <div class="category-item">
+        </a>
+        
+        <a href="{% url 'main:browse_category' category='roti' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Roti" />
             </div>
             <div class="category-name">Roti</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='lontong' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Lontong" />
             </div>
             <div class="category-name">Lontong</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='cemilan' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Cemilan" />
             </div>
             <div class="category-name">Cemilan</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='minuman' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Minuman" />
             </div>
             <div class="category-name">Minuman</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='mie' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Mie" />
             </div>
             <div class="category-name">Mie</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='telur' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Telur" />
             </div>
             <div class="category-name">Telur</div>
-        </div>
-        <div class="category-item">
+        </a>
+
+        <a href="{% url 'main:browse_category' category='bubur' %}" class="category-item">
             <div class="category-image">
                 <img src="/api/placeholder/120/120" alt="Bubur" />
             </div>
             <div class="category-name">Bubur</div>
-        </div>
+        </a>
     </div>
 </div>
-</div>
-
+{% endblock %}
 {% include 'footer.html' %}
-{% endblock content %}
+
 
 <script>
 function scrollCategories(direction) {
@@ -835,4 +864,59 @@ window.addEventListener('load', function() {
     updateScrollButtons(container);
     container.addEventListener('scroll', () => updateScrollButtons(container));
 });
+
+document.querySelectorAll('.category-item').forEach(item => {
+        item.addEventListener('click', async function() {
+            const categoryName = this.querySelector('.category-name').textContent.toLowerCase();
+            try {
+                const response = await fetch(`/category/${categoryName}/`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Assume you have a div with id 'recommendations' to show the results
+                    const recommendationsDiv = document.querySelector('#recommendations');
+                    recommendationsDiv.innerHTML = ''; // Clear existing content
+                    
+                    data.recommendations.forEach(item => {
+                        // Create recommendation card
+                        const card = document.createElement('div');
+                        card.className = 'rekomendasi-card';
+                        
+                        card.innerHTML = `
+                            <div class="rekomendasi-card-content">
+                                <div class="rekomendasi-card-header">
+                                    <h3 class="rekomendasi-card-title">${item.name}</h3>
+                                    <div class="rekomendasi-rating">
+                                        <span class="star">★</span>
+                                        <span>${item.rating.toFixed(1)}</span>
+                                    </div>
+                                </div>
+                                <div class="rekomendasi-location">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                                        <circle cx="12" cy="10" r="3" />
+                                    </svg>
+                                    ${item.location}
+                                </div>
+                                <div class="rekomendasi-restaurant">${item.restaurant}</div>
+                                <div class="rekomendasi-hours">${item.operational_hours}</div>
+                                <div class="rekomendasi-card-footer">
+                                    <div class="rekomendasi-price">${item.display_price}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        recommendationsDiv.appendChild(card);
+                    });
+                    
+                    // Scroll to recommendations
+                    recommendationsDiv.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        });
+    });
+    
 </script>
+
