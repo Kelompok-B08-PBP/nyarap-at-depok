@@ -1,0 +1,84 @@
+/* Add padding to prevent navbar overlap */
+body {
+    padding-top: 80px;  /* Adjust this value to match the height of the navbar */
+}
+
+/* Navbar should be fixed */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #F6D110;  /* Adjust to your design */
+}
+
+/* Ensure the container is not hidden under the navbar */
+.container {
+    margin-top: 40px;  /* Matches the padding applied to body */
+}
+
+
+/* Review Card Styling */
+.review-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    max-width: 350px; /* Adjusted max-width for cards */
+}
+
+.review-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.review-card p {
+    margin-bottom: 10px;
+    font-family: 'Sarala', sans-serif;
+}
+
+.review-stars {
+    margin-bottom: 10px;
+}
+
+.review-stars .star {
+    font-size: 20px;
+    color: #FFD700;
+}
+
+.review-stars .star.active {
+    color: #FFD700;
+}
+
+/* Form Styling */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-container input[type="text"], 
+.form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-container button {
+    background-color: #F6D110;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background-color: #e6c30f;
+}

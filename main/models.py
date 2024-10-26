@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class UserPreference(models.Model):
     KECAMATAN_CHOICES = [
-        ('beji', 'Beji'),
+        ('Beji', 'Beji'),
         ('bojongsari', 'Bojongsari'),
         ('cilodong', 'Cilodong'),
         ('cimanggis', 'Cimanggis'),

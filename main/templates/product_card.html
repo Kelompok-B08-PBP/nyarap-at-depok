@@ -1,0 +1,205 @@
+{% load static %}
+
+<!-- product_card.html -->
+<div class="product-card">
+    <div class="product-image">
+        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+        <div class="product-category">{{ item.kategori }}</div>
+    </div>
+    <div class="product-content">
+        <div class="product-header">
+            <h3 class="restaurant-name">{{ item.restaurant }}</h3>
+            <div class="product-rating">
+                <span class="rating-star">★</span>
+                <span class="rating-value">{{ item.rating|floatformat:1 }}</span>
+            </div>
+        </div>
+        <p class="menu-name">{{ item.name }}</p>
+        <div class="product-info">
+            <div class="location">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>Kec. {{ item.kecamatan }}</span>
+            </div>
+            <div class="hours">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                <span>{{ item.operational_hours }}</span>
+            </div>
+        </div>
+        <div class="product-footer">
+            <div class="price">Rp {{ item.price}}</div>
+            <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Product Card Styles */
+.product-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Section */
+.product-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-category {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Content Section */
+.product-content {
+    padding: 16px;
+}
+
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.restaurant-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #4CAF50;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.rating-star {
+    color: #FFD700;
+}
+
+.menu-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #4a5568;
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+/* Info Section */
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.location, .hours {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #718096;
+    font-size: 13px;
+}
+
+.location svg, .hours svg {
+    flex-shrink: 0;
+    stroke: #718096;
+}
+
+/* Footer Section */
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.price {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #2d3748;
+}
+
+.details-button {
+    background: #FF5722;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.details-button:hover {
+    background: #F4511E;
+}
+
+/* Grid Layout for Browse Category */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+    
+    .product-card {
+        max-width: 100%;
+    }
+}
+</style>
