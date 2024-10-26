@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Post Detail</title>
+<style>
+    .container {
+        max-width: 80px; /* Mengatur lebar maksimum container */
+        margin: 0 auto; /* Menyusun kontainer di tengah */
+    }
+    .card {
+        display: flex; /* Menggunakan flexbox untuk layout */
+        border-radius: 56px; /* Radius keseluruhan */
+        overflow: hidden; /* Menghilangkan overflow */
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        margin: 20px 0; /* Mengatur margin untuk ruang di sekitar card */
+    }
+    .card-left {
+        flex: 1; /* Mengambil sisa ruang */
+        background-image: url('{{ post.photo_url }}'); /* Gambar latar belakang */
+        background-size: cover; /* Mengatur ukuran gambar agar sesuai */
+        background-position: center; /* Memusatkan gambar */
+        border-radius: 56px 0 0 56px; /* Hanya sudut kiri yang melengkung */
+    }
+    .card-right {
+        flex: 1; /* Mengambil sisa ruang */
+        background-color: #FFF; /* Warna latar belakang */
+        padding: 20px; /* Ruang dalam card */
+        border-radius: 0 56px 56px 0; /* Hanya sudut kanan yang melengkung */
+    }
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .card-content {
+        font-size: 1rem;
+        margin-bottom: 5px;
+    }
+    .card-user {
+        font-size: 0.9rem;
+        color: gray;
+    }
+    .card-date {
+        font-size: 0.9rem;
+        color: gray;
+        margin-top: 10px; /* Ruang di atas tanggal */
+    }
+</style>
+{% endblock meta %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="flex flex-col min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-8 mt-16">
+        <h1 class="text-3xl font-bold text-center mb-8 text-black">Post Detail</h1>
+        
+        <div class="card">
+            <div class="card-left"></div> <!-- Bagian kiri untuk gambar -->
+            <div class="card-right">
+                <div class="card-title">{{ post.title }}</div>
+                <div class="card-user">Posted by: {{ post.user.username }}</div>
+                <div class="card-content">{{ post.content }}</div>
+                <div class="card-date">Posted on: {{ post.created_at|date:"F d, Y" }}</div> <!-- Tanggal posting -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+ 

@@ -65,10 +65,28 @@ def detailer_list(request):
     context = {'recommendations': recommendations}
     return render(request, 'card_list.html', context)
 
-def detail_view(request, id):
-    recommendations = load_recommendations_from_excel()
-    item = next((item for item in recommendations if item['id'] == id), None)
-    if item is None:
-        print(f"Item dengan id {id} tidak ditemukan")
-        return render(request, '404.html')
-    return render(request, 'nyarap_detailer.html', {'item': item})
+
+def preferences_summary(request):
+    # Ambil preferensi dari sesi atau sumber lainnya
+    preference = {
+        'location': request.session.get('location', 'Depok'),
+        'breakfast_type': request.session.get('breakfast_type', 'All'),
+        'price_range': request.session.get('price_range', 'All'),
+    }
+
+    # Ambil data produk dari database
+    detailers = Detailer.objects.all()  # Ambil semua detailer
+
+    # Filter berdasarkan preferensi
+    if preference['location']:
+        detailers = detailers.filter(location=preference['location'])
+    if preference['breakfast_type'] and preference['breakfast_type'] != 'All':
+        detailers = detailers.filter(breakfast_type=preference['breakfast_type'])
+    if preference['price_range'] and preference['price_range'] != 'All':
+        detailers = detailers.filter(price_range=preference['price_range'])
+
+    context = {
+        'preference': preference,
+        'detailers': detailers,
+    }
+    return render(request, 'main:recommendation_list.html', context)
