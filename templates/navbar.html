@@ -15,7 +15,9 @@
                    Home
                 </a>
                 <a href="#" class="nav-link">Community</a>
-                <a href="#" class="nav-link">Wishlist</a>
+                <a href="{% url 'wishlist_page' %}" class="nav-link {% if request.path == '/wishlist/' %}active{% endif %}">
+                    Wishlist
+                </a>                
                 <a href="#" class="nav-link">Reviews</a>
             </div>
 
