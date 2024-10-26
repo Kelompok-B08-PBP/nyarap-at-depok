@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Sarala:wght@400&display=swap" rel="stylesheet">
+    <style>
+        /* Add to your CSS */
+        .post-card-transition {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .post-card-transition:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Custom styles for layout */
+        .post-entry {
+            display: flex;
+            align-items: center; /* Vertically center the content */
+            background: white; 
+            border-radius: 10px; 
+            padding: 1rem; 
+            margin-bottom: 1rem; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+        }
+
+        .post-entry img {
+            width: 150px; /* Set a fixed width for the image */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 10px; /* Optional: round the corners of the image */
+            margin-right: 1rem; /* Space between the image and text */
+        }
+
+        .post-content {
+            flex: 1; /* Allow text to take the remaining space */
+        }
+
+        .action-buttons {
+            margin-top: 0.5rem;
+        }
+    </style>
+{% endblock meta %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container mx-auto p-8">
+    <h1 class="text-2xl font-bold mb-4">Your Posts</h1>
+
+    <div class="mt-8">
+        {% for post in posts %}
+        <div class="post-entry post-card-transition">
+            {% if post.photo_url %}
+            <img src="{{ post.photo_url }}" alt="{{ post.title }}">
+            {% endif %}
+            <div class="post-content">
+                <h3 class="text-xl font-bold mb-2">{{ post.title }}</h3>
+                <p class="text-gray-600 mb-2">{{ post.caption }}</p>
+                <p class="text-sm text-gray-500 mb-1">
+                    <span class="font-bold">Location:</span> {{ post.location }}
+                </p>
+                <p class="text-sm text-gray-500 mb-1">
+                    <span class="font-bold"></span> {{ post.user.username }}
+                </p>
+                <p class="text-sm text-gray-500">
+                    <span class="font-bold">Posted on:</span> {{ post.created_at|date:"F d, Y" }}
+                </p>
+                <div class="action-buttons">
+                    <a href="{% url 'discovery:edit_post' post.id %}">
+                        <button class="bg-blue-500 text-white py-1 px-3 rounded">Edit</button>
+                    </a>
+                    <form method="POST" action="{% url 'discovery:delete_post' post.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="submit" value="Delete" class="bg-red-500 text-white py-1 px-3 rounded" onclick="return confirm('Are you sure you want to delete this post?');"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-8">
+            <p class="text-gray-500">You have not posted anything yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}
