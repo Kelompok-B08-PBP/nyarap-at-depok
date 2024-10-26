@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'main',
+    'discovery',
     'nyarap_detailer',
-    'nyarap_nanti'
+    'nyarap_nanti',
     'reviews',
 ]
 
