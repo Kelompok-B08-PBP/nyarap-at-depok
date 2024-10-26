@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'main',
     'nyarap_detailer',
+    'nyarap_nanti'
+    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +151,5 @@ print(os.path.exists(EXCEL_DATA_PATH))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
+
+LOGIN_URL = 'main:login'
