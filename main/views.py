@@ -13,12 +13,13 @@ from django.urls import reverse
 from .forms import PreferencesForm  # Updated import name
 from .models import UserPreference
 import pandas as pd
+from django.conf import settings
 
 
 def load_recommendations_from_excel():
     try:
-        # Load the data from the Excel file
-        df = pd.read_excel('main/data/dataset.xlsx')
+        excel_path = settings.EXCEL_DATA_PATH
+        df = pd.read_excel(excel_path)
         print(f"Loaded Excel file with {len(df)} rows")
         
         # Clean the data first
