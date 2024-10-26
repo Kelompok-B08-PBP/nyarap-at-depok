@@ -5,7 +5,7 @@
             <!-- Logo and Brand -->
             <div class="flex items-center gap-2">
                 <img src="{% static 'images/LOGO_KECIL.png' %}" alt="Nyarap Logo">
-                <span class="text-xl font-normal font-['Sawarabi_Mincho']">Nyarap at Depok</span>
+                <span class="text-xl font-bold font-lexend">Nyarap @Depok</span>
             </div>
 
             <!-- Navigation Links - Desktop -->
@@ -18,13 +18,17 @@
                     Community
                 </a>
                 <a href="#" class="nav-link">Wishlist</a>
-                <a href="#" class="nav-link">Reviews</a>
+                <a href="#" class="nav-link">Community</a>
+                <a href="{% url 'wishlist_page' %}" class="nav-link {% if request.path == '/wishlist/' %}active{% endif %}">
+                    Wishlist
+                </a>                
+                <a href="{% url 'reviews:show_reviews' %}" class="nav-link">Reviews</a>
             </div>
 
             <!-- Auth Buttons -->
             <div class="hidden md:flex items-center gap-3">
                 {% if user.is_authenticated %}
-                <span class="text-black text-sm font-['Sawarabi_Mincho']">Welcome, {{ user.username }}</span>
+                <span class="text-sm font-semi-bold font-lexend">Welcome, {{ user.username }}</span>
                 <a href="{% url 'main:logout' %}" class="auth-btn-logout">Logout</a>
                 {% else %}
                 <a href="{% url 'main:login' %}" class="auth-btn-login">Login</a>
@@ -46,26 +50,26 @@
     <!-- Mobile menu -->
     <div class="mobile-menu hidden md:hidden px-4 pb-3 bg-[#F6D110]">
         <a href="{% url 'main:show_main' %}" 
-           class="block py-2 text-sm font-['Sawarabi_Mincho'] {% if request.path == '/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
+           class="block py-2 text-sm font-lexend {% if request.path == '/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
            Home
         </a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Community</a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Wishlist</a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-['Sawarabi_Mincho'] hover:text-[#C3372B]">Reviews</a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Community</a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Wishlist</a>
+        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Reviews</a>
         
         {% if user.is_authenticated %}
-        <span class="block py-2 text-black text-sm font-['Sawarabi_Mincho']">Welcome, {{ user.username }}</span>
+        <span class="block py-2 text-black text-sm font-lexend">Welcome, {{ user.username }}</span>
         <a href="{% url 'main:logout' %}" 
-           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-['Sawarabi_Mincho'] hover:bg-[#C3372B] hover:text-white transition-colors">
+           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-lexend hover:bg-[#C3372B] hover:text-white transition-colors">
             Logout
         </a>
         {% else %}
         <a href="{% url 'main:login' %}" 
-           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-['Sawarabi_Mincho'] hover:bg-[#C3372B] hover:text-white transition-colors">
+           class="block text-center py-1.5 mt-2 bg-white border border-[#C3372B] text-[#C3372B] rounded-lg text-sm font-lexend hover:bg-[#C3372B] hover:text-white transition-colors">
             Login
         </a>
         <a href="{% url 'main:register' %}" 
-           class="block text-center py-1.5 mt-2 bg-[#C3372B] text-white rounded-lg text-sm font-['Sawarabi_Mincho'] hover:bg-[#A52D22] transition-colors">
+           class="block text-center py-1.5 mt-2 bg-[#C3372B] text-white rounded-lg text-sm font-lexend hover:bg-[#A52D22] transition-colors">
             Register
         </a>
         {% endif %}
@@ -74,10 +78,17 @@
 
 <!-- Styles -->
 <style>
+    /* Import Lexend font */
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap');
+
+    /* Apply Lexend font globally */
+    * {
+        font-family: 'Lexend', sans-serif;
+    }
+
     /* Hover underline effect */
     .nav-link {
         color: #000000;
-        font-family: 'Sawarabi Mincho';
         position: relative;
         transition: color 0.3s ease;
     }
@@ -116,7 +127,6 @@
         border: 1px solid #C3372B;
         color: #C3372B;
         border-radius: 8px;
-        font-family: 'Sawarabi Mincho';
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
@@ -130,7 +140,6 @@
         background-color: #C3372B;
         color: white;
         border-radius: 8px;
-        font-family: 'Sawarabi Mincho';
         transition: background-color 0.3s ease;
     }
 
@@ -140,11 +149,9 @@
 
     .auth-btn-logout {
         padding: 4px 1.5rem;
-        background-color: white;
         border: 1px solid #C3372B;
         color: #C3372B;
         border-radius: 8px;
-        font-family: 'Sawarabi Mincho';
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
