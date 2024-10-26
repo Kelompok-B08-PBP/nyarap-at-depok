@@ -33,7 +33,7 @@
         </div>
         <div class="product-footer">
             <div class="price">Rp {{ item.price}}</div>
-            <a href="#" class="details-button">Lihat Detail</a>
+            <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
         </div>
     </div>
 </div>
