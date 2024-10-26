@@ -65,20 +65,6 @@ def detailer_list(request):
     context = {'recommendations': recommendations}
     return render(request, 'card_list.html', context)
 
-    # Mengelola form komentar
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            detailer_id = request.POST.get('detailer_id')  # Mengambil ID tempat makan dari form
-            comment.detailer = Detailer.objects.get(id=detailer_id)
-            comment.save()
-            return redirect('detailer_list')
-    else:
-        form = CommentForm()
-
-    # Kirim data tempat makan dan form ke template
-    return render(request, 'main:main.html', {'detailers': detailers, 'form': form, 'recommendations': recommendations})
 
 def preferences_summary(request):
     # Ambil preferensi dari sesi atau sumber lainnya

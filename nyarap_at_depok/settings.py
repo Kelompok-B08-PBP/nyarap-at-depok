@@ -126,10 +126,24 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static'  # merujuk ke /static root project pada mode development
+    ]
+else:
+    STATIC_ROOT = BASE_DIR / 'static'  # merujuk ke /static root project pada mode production
+
+# Excel file path setting
+if not os.getenv("PRODUCTION", False):
+    # Development setting
+    EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx')
+else:
+    # Production setting
+    EXCEL_DATA_PATH = os.path.join(STATIC_ROOT, 'data', 'dataset.xlsx')
+
+print(EXCEL_DATA_PATH)
+print(os.path.exists(EXCEL_DATA_PATH)) 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
