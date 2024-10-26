@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Wishlist, Collection, CollectionItem, Restaurant
 from .forms import CollectionForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def wishlist_page(request):
@@ -37,11 +39,14 @@ def remove_from_wishlist(request, restaurant_id):
     CollectionItem.objects.filter(restaurant=restaurant).delete()
     return redirect('wishlist_page')
 
+@csrf_exempt
 @login_required
 def remove_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-    collection.delete()
-    return redirect('wishlist_page')
+    if request.method == "POST":
+        collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
+        collection.delete()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False}, status=400)
 
 @login_required
 def edit_collection(request, collection_id):
