@@ -1,43 +1,92 @@
-from django.shortcuts import render, get_object_or_404
+# views.py
+from django.shortcuts import render
 import pandas as pd
+import os
+from django.conf import settings
 
 def load_recommendations_from_excel():
     try:
-        # Load the data from the Excel file
-        df = pd.read_excel('main/data/dataset.xlsx')
+        # Dapatkan path absolut file Excel
+        excel_path = os.path.join(settings.BASE_DIR, 'nyarap_detailerpyth', 'data', 'dataset.xlsx')
         
-        # Convert DataFrame to list of dictionaries
-        recommendations = df.to_dict('records')
+        # Print path untuk debugging
+        print(f"Mencoba membaca file dari: {excel_path}")
         
-        # Format the data
-        for index, item in enumerate(recommendations):
-            item['id'] = index  # Menambahkan ID berdasarkan index
-            item['rating'] = int(float(item['Rating'])) if pd.notnull(item['Rating']) else None
-            item['price'] = "{:,.0f}".format(float(item['Harga'])) if pd.notnull(item['Harga']) else "N/A"
-            item['name'] = item['Nama Produk']
-            item['restaurant'] = item['Nama Restoran']
-            item['operational_hours'] = item['Jam Operasional']
-            item['location'] = item['Lokasi']
-            item['image'] = item['Link Foto']
-            item['kategori'] = item['Kategori']
+        # Cek apakah file exists
+        if not os.path.exists(excel_path):
+            print(f"File tidak ditemukan di: {excel_path}")
+            return []
+            
+        # Baca file Excel dengan explicit engine
+        df = pd.read_excel(excel_path, engine='openpyxl')
         
-        print(recommendations)
+        # Print kolom yang tersedia untuk debugging
+        print(f"Kolom yang tersedia: {df.columns.tolist()}")
         
+        # Print beberapa baris pertama untuk debugging
+        print(f"Preview data:\n{df.head()}")
+        
+        # Konversi DataFrame ke list of dictionaries
+        recommendations = []
+        
+        for index, row in df.iterrows():
+            try:
+                recommendation = {
+                    'id': index,
+                    'name': str(row['Nama Produk']) if pd.notnull(row['Nama Produk']) else '',
+                    'restaurant': str(row['Nama Restoran']) if pd.notnull(row['Nama Restoran']) else '',
+                    'location': str(row['Lokasi']) if pd.notnull(row['Lokasi']) else '',
+                    'operational_hours': str(row['Jam Operasional']) if pd.notnull(row['Jam Operasional']) else '',
+                    'image': str(row['Link Foto']) if pd.notnull(row['Link Foto']) else '',
+                    'rating': int(float(row['Rating'])) if pd.notnull(row['Rating']) else 0,
+                    'price': "{:,.0f}".format(float(row['Harga'])) if pd.notnull(row['Harga']) else "N/A",
+                    'kategori': str(row['Kategori']) if pd.notnull(row['Kategori']) else ''
+                }
+                recommendations.append(recommendation)
+                print(f"Berhasil memproses baris {index}")
+            except Exception as row_error:
+                print(f"Error pada baris {index}: {row_error}")
+                continue
+        
+        print(f"Total data yang berhasil diproses: {len(recommendations)}")
         return recommendations
-    
+        
     except Exception as e:
-        print(f"Error loading recommendations: {e}")
+        print(f"Error loading recommendations: {str(e)}")
+        # Print traceback untuk debugging
+        import traceback
+        print(traceback.format_exc())
         return []
 
 def detailer_list(request):
     recommendations = load_recommendations_from_excel()
-    return render(request, 'card_list.html', {'recommendations': recommendations})
+    # Print jumlah data untuk debugging
+    print(f"Jumlah data yang dikirim ke template: {len(recommendations)}")
+    context = {'recommendations': recommendations}
+    return render(request, 'card_list.html', context)
 
-def detail_view(request, id):
-    recommendations = load_recommendations_from_excel()
-    item = next((item for item in recommendations if item.get('id') == id), None)
-    
-    if item is None:
-        return render(request, '404.html')  
-    
-    return render(request, 'nyarap_detailer.html', {'item': item})
+
+def preferences_summary(request):
+    # Ambil preferensi dari sesi atau sumber lainnya
+    preference = {
+        'location': request.session.get('location', 'Depok'),
+        'breakfast_type': request.session.get('breakfast_type', 'All'),
+        'price_range': request.session.get('price_range', 'All'),
+    }
+
+    # Ambil data produk dari database
+    detailers = Detailer.objects.all()  # Ambil semua detailer
+
+    # Filter berdasarkan preferensi
+    if preference['location']:
+        detailers = detailers.filter(location=preference['location'])
+    if preference['breakfast_type'] and preference['breakfast_type'] != 'All':
+        detailers = detailers.filter(breakfast_type=preference['breakfast_type'])
+    if preference['price_range'] and preference['price_range'] != 'All':
+        detailers = detailers.filter(price_range=preference['price_range'])
+
+    context = {
+        'preference': preference,
+        'detailers': detailers,
+    }
+    return render(request, 'main:recommendation_list.html', context)
