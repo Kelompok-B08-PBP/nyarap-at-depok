@@ -2,33 +2,26 @@
 {% load static %}
 
 {% block content %}
-{% include 'navbar.html' %} 
+{% include 'navbar.html' %}
 <link rel="stylesheet" href="{% static 'css/reviews.css' %}">
 
 <div class="container mx-auto px-4 py-8">
-    <!-- Form for adding a new product review -->
     <div class="mb-8 bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold mb-4">Add New Review</h2>
         
         <form id="productForm" action="{% url 'reviews:add_product_review_ajax' %}" method="post" class="space-y-4">
             {% csrf_token %}
-            
-            <!-- Input for Restaurant Name (from Product model) -->
             <div class="form-group">
                 <label for="restaurant_name" class="block text-gray-700 font-medium mb-2">Restaurant Name</label>
                 <input type="text" id="restaurant_name" name="restaurant_name" 
                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                        required>
             </div>
-
-            <!-- Input for Food Name (from Product model) -->
             <div class="form-group">
                 <label for="food_name" class="block text-gray-700 font-medium mb-2">Food Name</label>
                 <input type="text" id="food_name" name="food_name" 
                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
-
-            <!-- Star Rating (from Product model) -->
             <div class="form-group">
                 <label class="block text-gray-700 font-medium mb-2">Rating</label>
                 <div class="flex space-x-2" id="starRating">
@@ -38,45 +31,87 @@
                 </div>
                 <input type="hidden" id="rating" name="rating" value="0" required>
             </div>
-
-            <!-- Input for Review Text (from Product model) -->
             <div class="form-group">
                 <label for="review" class="block text-gray-700 font-medium mb-2">Review</label>
                 <textarea id="review" name="review" rows="4" 
                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required></textarea>
             </div>
-
-            <!-- Submit Button -->
-            <button type="submit" 
-                    class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
                 Post Review
             </button>
         </form>
     </div>
 </div>
 
-<!-- JavaScript to handle star ratings -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('.star');
-    const ratingInput = document.getElementById('rating');
+document.getElementById('productForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-    // Star rating functionality
-    stars.forEach(star => {
-        star.addEventListener('click', function() {
-            const rating = this.dataset.rating;
-            ratingInput.value = rating;
-            
-            stars.forEach(s => {
-                if (s.dataset.rating <= rating) {
-                    s.classList.add('text-yellow-400');
-                } else {
-                    s.classList.remove('text-yellow-400');
-                }
+    // AJAX function untuk submit review form
+    async function addProductReview() {
+        const form = document.getElementById("reviewForm");
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch("{% url 'reviews:add_product_review_ajax' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData,
             });
-        });
-    });
+
+            if (response.status === 201) {
+                const restaurantName = formData.get('restaurant_name');
+                const foodName = formData.get('food_name');
+                const rating = formData.get('rating');
+                const reviewText = formData.get('review');
+                const currentDate = new Date().toLocaleString("en-US", {
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: 'numeric', minute: 'numeric', hour12: true
+                });
+
+                // Generate HTML untuk star rating
+                let starHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starHtml += `<span class="star ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}">★</span>`;
+                }
+
+                // Create HTML untuk new review card
+                const reviewHtml = `
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-2">${restaurantName}</h3>
+                        <p class="text-gray-600 mb-2">${foodName}</p>
+                        <div class="flex space-x-1 mb-2">${starHtml}</div>
+                        <p class="text-gray-700 mb-2">${reviewText}</p>
+                        <p class="text-sm text-gray-500">Added on ${currentDate}</p>
+
+                        <!-- Edit and Delete Buttons -->
+                        <div class="flex space-x-2 mt-4">
+                            <button class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                                Edit
+                            </button>
+                            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                const reviewsContainer = document.getElementById("reviewsContainer");
+                reviewsContainer.insertAdjacentHTML('afterbegin', reviewHtml);
+
+                form.reset();
+                hideModal();
+            } else {
+                console.error("Failed to create review");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+
 });
 </script>
 

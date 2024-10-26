@@ -7,7 +7,7 @@ class Product(models.Model):
     restaurant_name = models.CharField(max_length=255, default="Unknown Restaurant") 
     food_name = models.CharField(max_length=255) 
     review = models.TextField()  # Review produk
-    rating = models.IntegerField(default=0)  # Rating out of 5 stars
+    rating = models.IntegerField(default=0)  # Rating dengan 5 stars
     date_added = models.DateTimeField(default=timezone.now)  # Waktu saat membuat review
     
     class Meta:

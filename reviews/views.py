@@ -15,25 +15,27 @@ from .forms import ProductForm
 @login_required(login_url='/login')
 def show_reviews(request):
     reviews = Product.objects.all().order_by('-date_added')
-    context = {
-        'reviews': reviews,
-    }
     return render(request, 'reviews.html', {'reviews': reviews})
 
 @login_required(login_url='/login')
 @csrf_exempt
+@require_POST
 def add_product_review_ajax(request):
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            product = form.save(commit=False)  
-            product.user = request.user  
-            product.save() 
-            return redirect('reviews:show_reviews') 
+    restaurant_name = strip_tags(request.POST.get("restaurant_name"))
+    food_name = strip_tags(request.POST.get("food_name"))
+    rating = int(strip_tags(request.POST.get("rating")))
+    review_text = strip_tags(request.POST.get("review"))
+    user = request.user
 
-    # Jika bukan POST, tampilkan form kosong
-    form = ProductForm()
-    return render(request, 'create_product_review.html', {'form': form})
+    new_review = Product(
+        restaurant_name=restaurant_name,
+        food_name=food_name,
+        rating=rating,
+        review=review_text,
+        user=user  
+    )
+    new_review.save()
+    return HttpResponse(b"CREATED", status=201)
 
 def show_xml(request):
     data = Product.objects.filter(user=request.user)
@@ -50,6 +52,24 @@ def show_xml_by_id(request, id):
 def show_json_by_id(request, id):
     data = Product.objects.filter(pk=id)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def delete_product_review(request, id):
+    review = Product.objects.get(pk = id)
+    review.delete()
+    return HttpResponseRedirect(reverse('reviews:show_reviews'))
+
+def edit_product_review(request, id):
+    review = Product.objects.get(pk = id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            return redirect('reviews:show_reviews') 
+    else:
+        form = ProductForm(instance=review)
+
+    return render(request, 'edit_product_review.html', {'form': form, 'review': review})
+
 
 # def edit_product_review(request, id):
 #     # Get product review berdasarkan id
