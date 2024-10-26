@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class UserPreference(models.Model):
     KECAMATAN_CHOICES = [
-        ('beji', 'Beji'),
+        ('Beji', 'Beji'),
         ('bojongsari', 'Bojongsari'),
         ('cilodong', 'Cilodong'),
         ('cimanggis', 'Cimanggis'),
@@ -33,6 +33,9 @@ class UserPreference(models.Model):
         ('50000-100000', 'Rp 50.000 - Rp 100.000'),
         ('100000+', 'Diatas Rp 100.000'),
     ]
+
+    def __str__(self):
+        return f"{self.user.username}'s Preferences"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

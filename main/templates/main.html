@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% include 'navbar.html' %}
 {% load static %}
 
 {% block meta %}
@@ -62,13 +63,13 @@
 }
 
 .recommendation-section {
-    width: 90%; /* Increased width */
-    max-width: 1400px; /* Increased max-width */
-    margin: 100px auto 60px; 
+    width: 80%; /* Full width */
+    max-width: none; /* Remove max-width to allow full width */
+    margin: 0px auto 60px;
     background: white;
     box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
     border-radius: 28px;
-    padding: 40px 80px; 
+    padding: 40px 80px;
     position: relative;
     z-index: 10;
 }
@@ -77,13 +78,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 60px; /* Added gap for spacing */
+    gap: 60px;
 }
 
 .recommendation-text {
-    width: 45%; 
-    max-width: 500px; 
+    width: 50%; /* Adjust width to be more flexible */
+    max-width: none; /* Remove max-width */
 }
+
+.recommendation-image {
+    width: 50%; /* Adjust image width to match text */
+    max-width: none; /* Remove max-width to allow flexibility */
+    height: auto;
+    object-fit: contain;
+}
+
 
 .recommendation-title {
     color: #C3372B;
@@ -123,18 +132,484 @@
     background: #e6c30f;
 }
 
-.recommendation-image {
-    width: 45%; /* Changed to percentage */
-    max-width: 450px; /* Added max-width */
-    height: auto;
-    object-fit: contain;
-}
 
 .page-wrapper {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
+
+.preference-history-section {
+    background-color: #383A47;
+    padding: 60px 40px;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 40px;
+    color: white;
+}
+
+.preference-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.preference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.preference-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+    position: relative;
+}
+
+.preference-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.edit-btn {
+    background-color: #F6D110;
+    color: black;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 209, 16, 0.2);
+}
+
+.preference-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px;
+}
+
+.preference-item {
+    background-color: #4C4C4C;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preference-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    background-color: #565656;
+}
+
+.icon {
+    background-color: rgba(255, 91, 0, 0.1);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.icon svg {
+    width: 24px;
+    height: 24px;
+    color: #FF5B00;
+}
+
+.details {
+    flex: 1;
+}
+
+.label {
+    font-size: 14px;
+    color: #A8A8A8;
+    margin-bottom: 4px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Updated category section styles */
+.category-section {
+    max-width: 1200px;
+    margin: 0 auto 60px; /* Changed from margin: 60px auto to remove top margin */
+    padding: 0 20px;
+}
+.category-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.category-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px 0;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar IE and Edge */
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.category-container::-webkit-scrollbar {
+    display: none;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 auto;
+    width: 160px; /* Fixed width for each item */
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.category-item:hover {
+    transform: translateY(-5px);
+}
+
+.category-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.category-item:hover .category-image {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .category-item {
+        width: 140px;
+    }
+    
+    .category-image {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .category-name {
+        font-size: 14px;
+    }
+    
+    .category-title {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-section {
+        padding: 0 12px;
+    }
+    
+    .category-item {
+        width: 120px;
+    }
+    
+    .category-image {
+        width: 80px;
+        height: 80px;
+    }
+}
+.rekomendasi-section {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.rekomendasi-container {
+    width: 100%;
+}
+
+.rekomendasi-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 40px;
+    position: relative;
+    text-align: center; 
+}
+
+
+.rekomendasi-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%; /* Start positioning from the center */
+    transform: translateX(-50%); /* Shift the pseudo-element to be centered */
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.rekomendasi-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.rekomendasi-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.rekomendasi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.rekomendasi-card-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.rekomendasi-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rekomendasi-category {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rekomendasi-card-content {
+    padding: 16px;
+}
+
+.rekomendasi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.rekomendasi-card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.rekomendasi-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.star {
+    color: #F6D110;
+}
+
+.rekomendasi-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #676B6F;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.rekomendasi-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.rekomendasi-price {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.rekomendasi-detail-btn {
+    background: #F6D110;
+    color: black;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.rekomendasi-detail-btn:hover {
+    background: #e6c30f;
+}
+
+@media (max-width: 768px) {
+    .rekomendasi-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .rekomendasi-card {
+        max-width: 100%;
+    }
+}
+
+.rekomendasi-main-section {
+    padding: 60px 20px;
+    background: #FFFFFF;
+    margin-bottom: 60px;
+}
+
+.rekomendasi-main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.rekomendasi-main-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #2E2C49;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.rekomendasi-main-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background-color: #F6D110;
+    border-radius: 2px;
+}
+
+.rekomendasi-main-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.view-more-container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.view-more-btn {
+    display: inline-block;
+    background: #F6D110;
+    color: #2d3748;
+    padding: 12px 32px;
+    border-radius: 42px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.view-more-btn:hover {
+    background: #e6c30f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 209, 16, 0.2);
+}
+
+@media (max-width: 1200px) {
+    .rekomendasi-main-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .rekomendasi-main-section {
+        padding: 40px 16px;
+    }
+
+    .rekomendasi-main-title {
+        font-size: 28px;
+        margin-bottom: 32px;
+    }
+
+    .rekomendasi-main-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
 </style>
 {% endblock meta %}
 
@@ -144,25 +619,304 @@
     
     <div class="hero">
         <div class="content">
-            <h1 class="title">Welcome user,<br>
+            <h1 class="title">Welcome{% if request.user.is_authenticated %} {{ request.user.username }}{% else %}{% endif %},<br>
                 <span class="subtitle">mau sarapan apa hari ini?</span>
             </h1>
             <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
         </div>
     </div>
 
+    <div style="width: 100%; max-width: 1200px; margin: 60px auto; padding: 0 20px;">
+        <h2 style="text-align: center; color: #2E2C49; font-size: 46px; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 60px;">How Nyarap Works?</h2>
+        
+        <div style="display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
+            <!-- Step 1 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">01</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">🍳</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose what to eat</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Browse through our menu and pick your breakfast craving.</p>
+            </div>
+    
+            <!-- Step 2 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">02</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">📍</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose your location</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Set your location to find nearby breakfast options.</p>
+            </div>
+    
+            <!-- Step 3 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">03</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">💰</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Choose your price range</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Filter the options based on your budget.</p>
+            </div>
+    
+            <!-- Step 4 -->
+            <div style="flex: 1; min-width: 250px; background: #FAFAFA; border-radius: 28px; padding: 40px 30px; text-align: center;">
+                <div style="margin-bottom: 20px; font-family: 'Montserrat', sans-serif; color: #FF5331; font-size: 44px; font-weight: 600;">04</div>
+                <div style="background: white; width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">👤</span>
+                </div>
+                <h3 style="color: #191720; font-size: 24px; font-family: 'Montserrat', sans-serif; font-weight: 500; margin-bottom: 16px;">Add to Wishlist & Get personalized recommendations</h3>
+                <p style="color: #676B6F; font-size: 16px; font-family: 'Poppins', sans-serif;">Login to save your favorite breakfast spots, post in the community, and leave reviews.</p>
+            </div>
+        </div>
+    </div>
+    <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
+    {% if not request.user.is_authenticated or not user_preferences %}
     <div class="recommendation-section">
         <div class="recommendation-content">
             <div class="recommendation-text">
                 <h2 class="recommendation-title">Bingung pilih sarapan yang cocok buat kamu hari ini?</h2>
                 <p class="recommendation-description">Jangan khawatir! Pilih preferensimu dan kami akan bantu carikan sarapan yang sesuai selera.</p>
                 <a href="{% url 'main:recommendations' %}">
-                  <button class="recommendation-button">Cari Rekomendasi</button>
-              </a>
-              
+                    <button class="recommendation-button">Cari Rekomendasi</button>
+                </a>
             </div>
             <img src="{% static 'images/bingung.png' %}" alt="illustration" class="recommendation-image">
         </div>
     </div>
+    {% endif %} <!-- Close recommendation-section condition -->
+
+    <!-- Show preference-history-section only if user has set preferences -->
+    {% if user_preferences %}
+    <div class="preference-history-section">
+        <div class="preference-container">
+            <div class="preference-header">
+                <h2 class="preference-title">Preferensi Pilihanmu</h2>
+                <a href="{% url 'main:recommendations' %}" class="edit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                    Edit Preferensi
+                </a>
+            </div>
+            <div class="preference-content">
+                <!-- Location Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Lokasi</p>
+                        <p class="value">{{ user_preferences.get_preferred_location_display }}</p>
+                    </div>
+                </div>
+    
+                <!-- Breakfast Type Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 10.5 21h3a2.25 2.25 0 0 0 2.25-2.25V5.25A2.25 2.25 0 0 0 13.5 3Z"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Kategori Makanan</p>
+                        <p class="value">{{ user_preferences.get_preferred_breakfast_type_display }}</p>
+                    </div>
+                </div>
+    
+                <!-- Price Range Preference Item -->
+                <div class="preference-item">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="label">Harga</p>
+                        <p class="value">{{ user_preferences.get_preferred_price_range_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %} 
+
+    {% if recommendations %}
+    <section class="rekomendasi-main-section">
+        <div class="rekomendasi-main-container">
+            <h2 class="rekomendasi-main-title">Rekomendasi Nyarap </h2>
+            <div class="rekomendasi-main-grid">
+                {% for item in recommendations|slice:":4" %}
+                    {% include 'product_card.html' with item=item %}
+                {% endfor %}
+            </div>
+            
+            {% if recommendations|length > 4 %}
+            <div class="view-more-container">
+                <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
+                    Lihat Semua Rekomendasi
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+    
+<!-- main.html or wherever you have your category links -->
+
+<div class="category-section">
+    <h2 class="category-title">Browse by Category</h2>
+    <div class="category-container">
+        <!-- Define categories explicitly to avoid template tag issues -->
+        <a href="{% url 'main:browse_category' category='nasi' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Nasi" />
+            </div>
+            <div class="category-name">Nasi</div>
+        </a>
+        
+        <a href="{% url 'main:browse_category' category='roti' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Roti" />
+            </div>
+            <div class="category-name">Roti</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='lontong' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Lontong" />
+            </div>
+            <div class="category-name">Lontong</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='cemilan' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Cemilan" />
+            </div>
+            <div class="category-name">Cemilan</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='minuman' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Minuman" />
+            </div>
+            <div class="category-name">Minuman</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='mie' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Mie" />
+            </div>
+            <div class="category-name">Mie</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='telur' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Telur" />
+            </div>
+            <div class="category-name">Telur</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='bubur' %}" class="category-item">
+            <div class="category-image">
+                <img src="/api/placeholder/120/120" alt="Bubur" />
+            </div>
+            <div class="category-name">Bubur</div>
+        </a>
+    </div>
 </div>
-{% endblock content %}
+{% endblock %}
+{% include 'footer.html' %}
+
+
+<script>
+function scrollCategories(direction) {
+    const container = document.querySelector('.category-container');
+    const scrollAmount = 220;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const currentScroll = container.scrollLeft;
+    
+    if (direction === 'left' && currentScroll > 0) {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else if (direction === 'right' && currentScroll < maxScroll) {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+    updateScrollButtons(container);
+}
+
+function updateScrollButtons(container) {
+    const leftButton = document.querySelector('.scroll-left');
+    const rightButton = document.querySelector('.scroll-right');
+    
+    leftButton.style.opacity = container.scrollLeft <= 0 ? '0.5' : '1';
+    leftButton.style.pointerEvents = container.scrollLeft <= 0 ? 'none' : 'auto';
+    
+    rightButton.style.opacity = container.scrollLeft >= container.scrollWidth - container.clientWidth ? '0.5' : '1';
+    rightButton.style.pointerEvents = container.scrollLeft >= container.scrollWidth - container.clientWidth ? 'none' : 'auto';
+}
+
+window.addEventListener('load', function() {
+    const container = document.querySelector('.category-container');
+    updateScrollButtons(container);
+    container.addEventListener('scroll', () => updateScrollButtons(container));
+});
+
+document.querySelectorAll('.category-item').forEach(item => {
+        item.addEventListener('click', async function() {
+            const categoryName = this.querySelector('.category-name').textContent.toLowerCase();
+            try {
+                const response = await fetch(`/category/${categoryName}/`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Assume you have a div with id 'recommendations' to show the results
+                    const recommendationsDiv = document.querySelector('#recommendations');
+                    recommendationsDiv.innerHTML = ''; // Clear existing content
+                    
+                    data.recommendations.forEach(item => {
+                        // Create recommendation card
+                        const card = document.createElement('div');
+                        card.className = 'rekomendasi-card';
+                        
+                        card.innerHTML = `
+                            <div class="rekomendasi-card-content">
+                                <div class="rekomendasi-card-header">
+                                    <h3 class="rekomendasi-card-title">${item.name}</h3>
+                                    <div class="rekomendasi-rating">
+                                        <span class="star">★</span>
+                                        <span>${item.rating.toFixed(1)}</span>
+                                    </div>
+                                </div>
+                                <div class="rekomendasi-location">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                                        <circle cx="12" cy="10" r="3" />
+                                    </svg>
+                                    ${item.location}
+                                </div>
+                                <div class="rekomendasi-restaurant">${item.restaurant}</div>
+                                <div class="rekomendasi-hours">${item.operational_hours}</div>
+                                <div class="rekomendasi-card-footer">
+                                    <div class="rekomendasi-price">${item.display_price}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        recommendationsDiv.appendChild(card);
+                    });
+                    
+                    // Scroll to recommendations
+                    recommendationsDiv.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        });
+    });
+    
+</script>
+
