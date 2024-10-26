@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'main',
     'nyarap_detailer',
     'nyarap_nanti'
+    'reviews',
 ]
 
 MIDDLEWARE = [

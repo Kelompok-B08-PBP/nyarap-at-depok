@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %} 
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4">Edit Review</h2>
+        
+        <form id="productForm" action="{% url 'reviews:edit_product_review' review.id %}" method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="restaurant_name" class="block text-gray-700 font-medium mb-2">Restaurant Name</label>
+                <input type="text" id="restaurant_name" name="restaurant_name" value="{{ review.restaurant_name }}"
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <div class="form-group">
+                <label for="food_name" class="block text-gray-700 font-medium mb-2">Food Name</label>
+                <input type="text" id="food_name" name="food_name" value="{{ review.food_name }}"
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <div class="form-group">
+                <label class="block text-gray-700 font-medium mb-2">Rating</label>
+                <div class="flex space-x-2" id="starRating">
+                    {% for i in "12345" %}
+                    <span class="star text-3xl cursor-pointer {% if i|add:0 <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}" data-rating="{{ i }}">★</span>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="rating" name="rating" value="{{ review.rating }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="review" class="block text-gray-700 font-medium mb-2">Review</label>
+                <textarea id="review" name="review" rows="4" 
+                          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required>{{ review.review }}</textarea>
+            </div>
+
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('rating');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            ratingInput.value = rating;
+            
+            stars.forEach(s => {
+                if (s.dataset.rating <= rating) {
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.remove('text-yellow-400');
+                }
+            });
+        });
+    });
+});
+</script>
+
+</div>
+{% endblock %}

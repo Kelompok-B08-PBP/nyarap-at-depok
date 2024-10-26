@@ -191,20 +191,6 @@ def show_main(request):
             print(f"Error in show_main: {str(e)}")
             user_preferences = None
 
-    context = {
-        'name': request.user.username if request.user.is_authenticated else 'Guest',
-        'class': 'PBP D', 
-        'npm': '2306123456',  
-        'mood_entries': preference_entries,  
-        'user_preferences': user_preferences,
-
-        'recommendations': filtered_recommendations,
-
-        'recommendations': recommendations,
-        'last_login': request.COOKIES['last_login'],
-
-    }
-
     return render(request, "main.html", context)
 
 
