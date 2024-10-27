@@ -9,6 +9,8 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .forms import PostEntryForm
+import pandas as pd
+
 
 
 
@@ -107,6 +109,8 @@ def discovery_page(request):
     # Get all posts for initial load (For You)
     posts = PostEntry.objects.all().order_by('-created_at')
     return render(request, 'discovery.html', {'posts': posts})
+
+
 
 
 

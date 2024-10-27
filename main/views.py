@@ -99,16 +99,11 @@ def load_recommendations_from_excel():
 
 def show_main(request):
     user_preferences = None
-
     filtered_recommendations = []
-
-    recommendations = []
-    preference_entries = UserPreference.objects.all()  # Dari aline/nyarap_nanti
     
     if request.user.is_authenticated:
         try:
             user_preferences = UserPreference.objects.get(user=request.user)
-
             breakfast_type = user_preferences.preferred_breakfast_type.lower()
             location = user_preferences.preferred_location.strip().title()
             
@@ -180,16 +175,18 @@ def show_main(request):
                     
                 print(f"Final filtered recommendations count: {len(filtered_recommendations)}")
                 
-
-            # Only load recommendations if user has preferences
-            recommendations = load_recommendations_from_excel()  # Import dari dev
-
         except UserPreference.DoesNotExist:
             print("No user preferences found")
             user_preferences = None
         except Exception as e:
             print(f"Error in show_main: {str(e)}")
             user_preferences = None
+
+    context = {
+        'name': request.user.username if request.user.is_authenticated else 'Guest',
+        'user_preferences': user_preferences,
+        'recommendations': filtered_recommendations,
+    }
 
     return render(request, "main.html", context)
 
@@ -532,16 +529,20 @@ def recommendation_list(request):
 
 @login_required
 def edit_preferences(request):
+    # Ambil preferensi pengguna yang sudah login
     user_preferences = request.user.preferences
-
+    
+    # Cek apakah metode yang digunakan adalah POST (form disubmit)
     if request.method == 'POST':
         form = PreferencesForm(request.POST, instance=request.user)
         if form.is_valid():
+            # Simpan perubahan preferensi
             form.save()
-            return redirect('main:home')
+            return redirect('main:home')  # Redirect ke halaman home setelah preferensi disimpan
     else:
+        # Inisialisasi form dengan preferensi user saat ini
         form = PreferencesForm(instance=request.user)
-
+    
     context = {
         'form': form,
         'user_preferences': user_preferences,
@@ -786,7 +787,3 @@ def product_details(request, category, product_id):
         print(f"Error in product_details view: {str(e)}")
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
-
-@login_required
-def wishlist_view(request):
-    return render(request, 'wishlist.html')

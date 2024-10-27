@@ -17,5 +17,6 @@ urlpatterns = [
     path('delete/<int:id>/', views.delete_post, name='delete_post'),
     path('get-posts/', views.get_posts, name='get_posts'),
     
+    
    
 ]

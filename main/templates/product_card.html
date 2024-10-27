@@ -33,7 +33,11 @@
         </div>
         <div class="product-footer">
             <div class="price">Rp {{ item.price}}</div>
-            <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
+            {% if raw_category and item.id %}
+                <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
+            {% else %}
+                <span class="details-button disabled">Lihat Detail</span>
+            {% endif %}
         </div>
     </div>
 </div>
