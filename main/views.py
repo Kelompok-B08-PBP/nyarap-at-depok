@@ -22,7 +22,18 @@ def load_recommendations_from_excel():
     try:
         excel_path = settings.EXCEL_DATA_PATH
         df = pd.read_excel(excel_path)
+        kategori_mapping = {
+            'Sarapan Sehat': 'makanan_sehat',
+            'sarapan sehat': 'makanan_sehat',
+            'Makanan Sehat': 'makanan_sehat',
+            'Sarapan Berat': 'makanan_berat',
+            'sarapan berat': 'makanan_berat',
+            'Makanan berat': 'makanan_berat'
+        }
         
+        # Standardisasi kategori sebelum lowercase dan strip
+        df['Kategori'] = df['Kategori'].replace(kategori_mapping, regex=False)
+
         df['Kategori'] = df['Kategori'].str.lower().str.strip()
         df['Kecamatan'] = df['Kecamatan'].strip() if isinstance(df['Kecamatan'], str) else df['Kecamatan']
         
@@ -440,9 +451,9 @@ def recommendation_list(request):
         'cemilan': 'Cemilan',
         'minuman': 'Minuman',
         'mie': 'Mie',
-        'makanan_sehat': 'Makanan Sehat',
+        'makanan_sehat': 'Sarapan Sehat',
         'bubur': 'Bubur',
-        'makanan_berat': 'Makanan Berat',
+        'makanan_berat': 'Sarapan Berat',
     }
     location_display = dict(UserPreference.KECAMATAN_CHOICES)
     price_display = dict(UserPreference.PRICE_CHOICES)
@@ -552,9 +563,9 @@ def edit_preferences(request):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'makanan_sehat': 'Makanan Sehat',
+            'makanan_sehat': 'Sarapan Sehat',
             'bubur': 'Bubur',
-            'makanan_berat': 'Makanan Berat',
+            'makanan_berat': 'Sarapan Berat',
         }
 
         context.update({
@@ -670,9 +681,9 @@ def browse_category(request, category):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'makanan_sehat': 'Makanan Sehat',
+            'makanan_sehat': 'Sarapan Sehat',
             'bubur': 'Bubur',
-            'makanan_berat': 'Makanan Berat',
+            'makanan_berat': 'Sarapan Berat',
         }
         
         context = {
@@ -860,3 +871,4 @@ def delete_preferences(request):
             'message': 'Invalid request method'
         })
     return redirect('main:home')
+
