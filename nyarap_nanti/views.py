@@ -60,3 +60,23 @@ def edit_collection(request, collection_id):
         form = CollectionForm(instance=collection)
 
     return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
+@login_required
+def add_to_wishlist(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Restaurant, id=product_id)
+        wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+        
+        # Tambahkan produk ke wishlist
+        if not CollectionItem.objects.filter(collection__wishlist=wishlist, restaurant=product).exists():
+            collection = Collection.objects.get_or_create(wishlist=wishlist, name="Default Collection")[0]
+            CollectionItem.objects.create(collection=collection, restaurant=product)
+        
+        # Arahkan pengguna ke halaman wishlist
+        return redirect('wishlist_page')
+
+@login_required
+def remove_from_wishlist(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    CollectionItem.objects.filter(restaurant=restaurant, collection__wishlist__user=request.user).delete()
+    return redirect('wishlist_page')
