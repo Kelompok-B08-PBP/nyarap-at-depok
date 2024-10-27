@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% load static %}
 
@@ -309,6 +310,12 @@
                 </div>
 
                 <div class="action-buttons">
+                    <form action="{% url 'nyarap_nanti:add_to_wishlist_by_id' product.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-wishlist">Add to Wishlist</button>
+                    </form>                                      
+                    <button class="btn btn-review">
+
                     <form action="{% url 'wishlist_page' %}" method="POST">
                         {% csrf_token %}
                         <button type="button" class="btn btn-wishlist">
@@ -323,6 +330,7 @@
                     </a>  
                     {% if user.is_authenticated %}
                     <button class="btn btn-review" onclick="showReviewForm()">
+
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 4v16m8-8H4"/>
                         </svg>
@@ -375,3 +383,4 @@
             {% endif %}
         </div>
         {% endblock %}
+

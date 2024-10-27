@@ -24,6 +24,6 @@ urlpatterns = [
     path('', include('main.urls')),
     path('discovery/', include('discovery.urls')),
     path('detailer/', include('nyarap_detailer.urls')),
-    path('', include('nyarap_nanti.urls')), 
+    path('wishlist/', include('nyarap_nanti.urls', namespace='nyarap_nanti')),
     path('review/', include('reviews.urls')),
 ]

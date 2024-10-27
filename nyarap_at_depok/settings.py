@@ -153,3 +153,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
 
 LOGIN_URL = 'main:login'
+EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx')
