@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'main',
     'nyarap_detailer',
-    'nyarap_nanti'
+    'nyarap_nanti',
     'reviews',
 ]
 
