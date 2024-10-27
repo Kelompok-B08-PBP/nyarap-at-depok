@@ -1,15 +1,10 @@
 # models.py
 from django.db import models
 from django.contrib.auth.models import User
+from main.models import Restaurant
 
-class Restaurant(models.Model):
-    name = models.CharField(max_length=100)
-    category = models.CharField(max_length=50)
-    location = models.CharField(max_length=100)
-    image_url = models.URLField()
 
-    def __str__(self):
-        return self.name
+
 
 class Wishlist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

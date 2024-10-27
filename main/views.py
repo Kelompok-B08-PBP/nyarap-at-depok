@@ -1,7 +1,8 @@
 import datetime
+import logging
 from django.shortcuts import render, redirect
 from main.forms import PreferencesForm
-from main.models import UserPreference
+from main.models import UserPreference, Restaurant
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -18,10 +19,12 @@ import pandas as pd
 from django.conf import settings
 import hashlib
 
+logger = logging.getLogger(__name__)
 def load_recommendations_from_excel():
     try:
         excel_path = settings.EXCEL_DATA_PATH
         df = pd.read_excel(excel_path)
+        
         kategori_mapping = {
             'Makanan Sehat': 'makanan_sehat',
             'Makanan Berat': 'makanan_berat'
@@ -29,7 +32,6 @@ def load_recommendations_from_excel():
         
         # Standardisasi kategori sebelum lowercase dan strip
         df['Kategori'] = df['Kategori'].replace(kategori_mapping, regex=False)
-
         df['Kategori'] = df['Kategori'].str.lower().str.strip()
         df['Kecamatan'] = df['Kecamatan'].strip() if isinstance(df['Kecamatan'], str) else df['Kecamatan']
         
@@ -75,8 +77,10 @@ def load_recommendations_from_excel():
                     'rating': rating,
                     'operational_hours': str(row['Jam Operasional']).strip(),
                     'location': str(row['Lokasi']),
+
                     'price': clean_price,
                     'image_url': image_url
+
                 })
                 
             except KeyError as e:
@@ -447,9 +451,12 @@ def recommendation_list(request):
         'cemilan': 'Cemilan',
         'minuman': 'Minuman',
         'mie': 'Mie',
+        'telur': 'Telur',
+        'bubur': 'Bubur'
         'makanan_sehat': 'Sarapan Sehat',
         'bubur': 'Bubur',
         'makanan_berat': 'Sarapan Berat',
+
     }
     location_display = dict(UserPreference.KECAMATAN_CHOICES)
     price_display = dict(UserPreference.PRICE_CHOICES)
@@ -476,6 +483,24 @@ def recommendation_list(request):
     else:
         recommended_products = get_recommendations(breakfast_type, location, price_range)
 
+
+    # Add ID to each recommended product
+    recommendations_with_id = []
+    for index, product in enumerate(recommended_products, start=1):
+        product_dict = product
+        if not isinstance(product, dict):
+            product_dict = {
+                'name': getattr(product, 'name', ''),
+                'price': getattr(product, 'price', ''),
+                'restaurant': getattr(product, 'restaurant', ''),
+                'rating': getattr(product, 'rating', ''),
+                'kategori': getattr(product, 'kategori', ''),
+                'kecamatan': getattr(product, 'kecamatan', ''),
+                'operational_hours': getattr(product, 'operational_hours', ''),
+                'image_url': getattr(product, 'image_url', ''),
+            }
+        product_dict['id'] = index
+
     # Add ID to each recommended product - Gunakan current_id untuk konsistensi
     recommendations_with_id = []
     current_id = 1  # Mulai dari 1
@@ -493,6 +518,7 @@ def recommendation_list(request):
         }
         product_dict['id'] = current_id
         current_id += 1  # Increment ID
+
         recommendations_with_id.append(product_dict)
 
     context = {
@@ -583,6 +609,7 @@ def edit_preferences(request):
     return render(request, 'edit_preference_ajax.html', context)
 
 def generate_product_id(name, restaurant, location):
+
     identifier = f"{name}_{restaurant}_{location}"
     hash_object = hashlib.md5(identifier.encode())
     return int(hash_object.hexdigest()[:8], 16)
@@ -727,56 +754,23 @@ def product_details(request, category, product_id):
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
 
-def get_product_by_id(product_id):
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        found_product = None
-        
-        # Counter for numeric ID matching
-        current_id = 1
-        
-        # Search through all categories and locations
-        for category, locations in all_recommendations.items():
-            for location, items in locations.items():
-                for item in items:
-                    # Try both numeric ID and hash ID matching
-                    hash_id = generate_product_id(item['name'], item['restaurant'], location)
-                    
-                    if product_id == current_id or product_id == hash_id:
-                        found_product = item.copy()
-                        found_product.update({
-                            'id': current_id,  # Keep the numeric ID
-                            'category': category,
-                            'kecamatan': location,
-                            'name': item['name'],
-                            'restaurant': item['restaurant'],
-                            'rating': float(str(item.get('rating', '0')).replace(',', '.')),
-                            'operational_hours': item.get('operational_hours', ''),
-                            'location': item.get('location', ''),
-                             'image_url': item.get('image_url', '/api/placeholder/800/400'),
-                        })
-                        
-                        # Handle price display
-                        try:
-                            if isinstance(item['price'], (int, float)):
-                                found_product['display_price'] = f"Rp {float(item['price']):,.0f}"
-                            else:
-                                price_str = str(item['price']).replace('Rp', '').replace(',', '').replace('.', '').strip()
-                                if price_str and price_str.isdigit():
-                                    found_product['display_price'] = f"Rp {float(price_str):,.0f}"
-                                else:
-                                    found_product['display_price'] = "Harga belum tersedia"
-                        except (ValueError, KeyError):
-                            found_product['display_price'] = "Harga belum tersedia"
-                            
-                        return found_product
-                    
-                    current_id += 1
-        
-        return None
-        
-    except Exception as e:
-        return None
+def load_data_to_restaurant():
+    excel_path = settings.EXCEL_DATA_PATH  # Pastikan path ini mengarah ke file `.xlsx`
+    df = pd.read_excel(excel_path)
+    
+    for _, row in df.iterrows():
+        Restaurant.objects.update_or_create(
+            name=row['Nama Produk'].strip(),
+            defaults={
+                'category': row['Kategori'].strip().lower(),
+                'location': row['Lokasi'].strip(),
+                'price': float(row['Harga']),
+                'rating': float(str(row['Rating']).replace(',', '.')),
+                'operational_hours': row['Jam Operasional'].strip(),
+            }
+        )
+        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
+        return redirect('main:browse_category', category=category)
 
 def product_details_recommendation(request, product_id):
     try:
@@ -875,4 +869,3 @@ def delete_preferences(request):
             'message': 'Invalid request method'
         })
     return redirect('main:show_main')
-
