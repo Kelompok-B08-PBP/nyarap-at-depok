@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="product-footer">
-            <div class="price">Rp {{ item.price }}</div>
+            <div class="price">{{ item.display_price }}</div>
             {% if source == 'recommendations' %}
                 <a href="{% url 'main:product_details_recommendation' product_id=item.id %}" class="details-button">
                     Lihat Detail
