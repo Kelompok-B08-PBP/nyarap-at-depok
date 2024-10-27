@@ -2,6 +2,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'nyarap_nanti'
+
 urlpatterns = [
     path('wishlist/', views.wishlist_page, name='wishlist_page'),
     path('wishlist/create/', views.create_collection, name='create_collection'),

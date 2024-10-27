@@ -13,7 +13,7 @@
         <div class="mb-12">
             <div class="flex flex-wrap gap-6 justify-center">
                 <!-- Add Collection Card -->
-                <a href="{% url 'create_collection' %}" 
+                <a href="{% url 'nyarap_nanti:create_collection' %}" 
                    class="w-64 h-64 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-dashed border-blue-300 
                           flex flex-col items-center justify-center group hover:from-blue-100 hover:to-blue-200 transition duration-300">
                     <div class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-4 
@@ -48,14 +48,14 @@
                         
                         <!-- Action Buttons -->
                         <div class="px-4 pb-4 flex justify-between items-center">
-                            <a href="{% url 'edit_collection' collection.id %}" 
+                            <a href="{% url 'nyarap_nanti:edit_collection' collection.id %}" 
                             class="text-gray-600 hover:text-blue-600 transition duration-300">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                             </a>
-                            <a href="{% url 'collection_detail' collection.id %}" 
+                            <a href="{% url 'nyarap_nanti:collection_detail' collection.id %}" 
                             class="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition duration-300">
                                 <span>View</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,16 +78,55 @@
             </div>
         </div>
 
-        <!-- Wishlist Items Section -->
-        {% if wishlist_items|length == 0 %}
-        <div class="text-center py-12">
-            <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                <span class="text-4xl">🍽️</span>
-            </div>
-            <h3 class="text-xl font-medium text-gray-900 mb-2">Your wishlist is empty</h3>
-            <p class="text-gray-600">Start adding your favorite restaurants to your wishlist!</p>
-        </div>
-        {% endif %}
+                <!-- Wishlist Items Section -->
+                <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {% for product in wishlist_items %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                            <div class="product-category">{{ product.category }}</div>
+                        </div>
+                        <div class="product-content">
+                            <div class="product-header">
+                                <h3 class="restaurant-name">{{ product.name }}</h3>
+                                <div class="product-rating">
+                                    <span class="rating-star">★</span>
+                                    <span class="rating-value">{{ product.rating|floatformat:1 }}</span>
+                                </div>
+                            </div>
+                            <p class="menu-name">{{ product.restaurant }}</p>
+                            <div class="product-info">
+                                <div class="location">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    <span>Kec. {{ product.location }}</span>
+                                </div>
+                                <div class="hours">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M12 6v6l4 2"></path>
+                                    </svg>
+                                    <span>{{ product.operational_hours }}</span>
+                                </div>
+                            </div>
+                            <div class="product-footer">
+                                <div class="price">Rp {{ product.price }}</div>
+                                <a href="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" class="details-button">
+                                    Lihat Detail
+                                </a>
+                                <form action="{% url 'nyarap_nanti:remove_from_wishlist' product.id %}" method="post" class="details-button">
+                                    {% csrf_token %}
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>      
+        
+        
 
         <!-- Delete Collection Confirmation Modal -->
         <div id="deleteCollectionModal" 
@@ -149,4 +188,171 @@
         }
     });
 </script>
+<style>
+    .product-card {
+        background: white;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease-in-out;
+        height: 100%;
+        border: 1px solid #f0f0f0;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .product-category {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        backdrop-filter: blur(4px);
+    }
+
+    .product-content {
+        padding: 1.25rem;
+    }
+
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+
+    .restaurant-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: #22C55E;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .rating-star {
+        color: #FDE047;
+    }
+
+    .menu-name {
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin: 0.5rem 0;
+        line-height: 1.5;
+    }
+
+    .product-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        margin: 1rem 0;
+    }
+
+    .location, 
+    .hours {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        font-size: 0.813rem;
+    }
+
+    .location svg, 
+    .hours svg {
+        width: 1rem;
+        height: 1rem;
+        stroke-width: 2;
+        color: #9ca3af;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .price {
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: #1a1a1a;
+    }
+
+    .details-button {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .details-button a,
+    .details-button button {
+        background: #F97316;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .details-button a:hover,
+    .details-button button:hover {
+        background: #EA580C;
+    }
+
+    /* Grid layout improvements */
+    .wishlist-items {
+        gap: 1.5rem;
+        padding: 1.5rem 0;
+    }
+
+    @media (max-width: 640px) {
+        .wishlist-items {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+    }
+</style>
 {% endblock %}

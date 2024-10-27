@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import render, redirect
 from main.forms import PreferencesForm
-from main.models import UserPreference
+from main.models import UserPreference, Restaurant
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -17,6 +17,8 @@ from .models import UserPreference
 import pandas as pd
 from django.conf import settings
 import hashlib
+from nyarap_nanti.models import Wishlist
+
 
 def load_recommendations_from_excel():
     try:
@@ -699,33 +701,97 @@ def browse_category(request, category):
 
 def product_details(request, category, product_id):
     try:
-        # Get product details using the product_id
+        # Get product details
         product = get_product_by_id(int(product_id))
         if not product:
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
-        product['id'] = product_id 
-        try:
-            from reviews.models import Review
-            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
-        except ImportError:
-            reviews = []
         
+        product['id'] = product_id
+        
+        # Get reviews and wishlist status
+        reviews = []
+        is_in_wishlist = False
+        
+        try:
+            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
+            if request.user.is_authenticated:
+                is_in_wishlist = Wishlist.objects.filter(
+                    user=request.user,
+                    product_id=product_id
+                ).exists()
+        except Exception as e:
+            pass
+            
         context = {
             'product': product,
             'category': category,
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
             'reviews': reviews,
-            'show_reviews': False  # Default tidak menampilkan review section
+            'show_reviews': True,
+            'is_in_wishlist': is_in_wishlist,
+            'return_url': request.GET.get('return_url', 'main:browse_category')  # Add return URL
         }
+        
+        # Check if request is coming from nyarap_nanti
+        if 'nyarap_nanti' in request.GET.get('source', ''):
+            return redirect('nyarap_nanti:product_details', 
+                          category=category, 
+                          product_id=product_id)
+        
         return render(request, 'product_details.html', context)
+        
     except ValueError:
         messages.error(request, 'ID produk tidak valid.')
         return redirect('main:browse_category', category=category)
     except Exception as e:
+        print(f"Error in product_details: {str(e)}")
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
+
+@login_required
+def add_to_wishlist(request, product_id):
+    if request.method == 'POST':
+        try:
+            # Check if product exists first
+            product = get_product_by_id(int(product_id))
+            if not product:
+                messages.error(request, 'Product not found.')
+                return redirect('main:show_main')
+
+            wishlist_item, created = Wishlist.objects.get_or_create(
+                user=request.user,
+                product_id=product_id,
+                defaults={
+                    'product_id': product_id  # Explicitly set product_id
+                }
+            )
+            
+            if created:
+                messages.success(request, 'Product added to wishlist successfully!')
+            else:
+                wishlist_item.delete()
+                messages.success(request, 'Product removed from wishlist.')
+                
+        except Exception as e:
+            print(f"Error in add_to_wishlist: {str(e)}")
+            messages.error(request, 'Failed to update wishlist.')
+    
+    # Get return URL and source from request
+    source = request.GET.get('source', '')
+    category = request.GET.get('category', '')
+    
+    # Determine which app to return to
+    if 'nyarap_nanti' in source:
+        return redirect('nyarap_nanti:wishlist_page', 
+                      category=category, 
+                      product_id=product_id)
+    else:
+        return redirect('main:product_details', 
+                      category=category, 
+                      product_id=product_id)
+
 
 def get_product_by_id(product_id):
     try:
@@ -876,3 +942,18 @@ def delete_preferences(request):
         })
     return redirect('main:show_main')
 
+def load_data_to_restaurant():
+    excel_path = settings.EXCEL_DATA_PATH  # Pastikan path ini mengarah ke file `.xlsx`
+    df = pd.read_excel(excel_path)
+    
+    for _, row in df.iterrows():
+        Restaurant.objects.update_or_create(
+            name=row['Nama Produk'].strip(),
+            defaults={
+                'category': row['Kategori'].strip().lower(),
+                'location': row['Lokasi'].strip(),
+                'price': float(row['Harga']),
+                'rating': float(str(row['Rating']).replace(',', '.')),
+                'operational_hours': row['Jam Operasional'].strip(),
+            }
+        )
