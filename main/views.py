@@ -776,13 +776,36 @@ def product_details_recommendation(request, product_id):
         return redirect('main:recommendation_list')
     
 
+@login_required
 @csrf_exempt
-@require_http_methods(["POST"])
 def delete_preferences(request):
-    if request.user.is_authenticated:
+    if request.method == 'POST':
         try:
+            # Get and delete the user's preferences
             UserPreference.objects.filter(user=request.user).delete()
-            return JsonResponse({'status': 'success'})
+            
+            # For AJAX requests
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Preferences deleted successfully'
+                })
+            
+            # For regular form submissions
+            return redirect('main:show_main')  # or whatever your home URL name is
+            
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=403)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                })
+            return redirect('main:show_main')
+    
+    # If not POST request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid request method'
+        })
+    return redirect('main:home')

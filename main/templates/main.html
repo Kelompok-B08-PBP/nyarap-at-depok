@@ -64,9 +64,9 @@
 }
 
 .recommendation-section {
-    width: 80%; /* Full width */
-    max-width: none; /* Remove max-width to allow full width */
-    margin: 0px auto 60px;
+    width: 80%; 
+    max-width: none; 
+    margin: 60px auto 60px;
     background: white;
     box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
     border-radius: 28px;
@@ -626,6 +626,42 @@
     line-height: 1.6;
 }
 
+.btn-get-started {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: #C3372B;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-get-started:hover {
+    background-color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.how-nyarap-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0px auto;
+    padding: 80px 20px 30px; /* Tambahkan padding top untuk jarak dari navbar */
+    scroll-margin-top: 80px; /* Ini akan memberi jarak saat di-scroll menggunakan anchor link */
+}
+
+.how-nyarap-title {
+    text-align: center;
+    color: #2E2C49;
+    font-size: 46px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    margin-bottom: 60px;
+}
 
 </style>
 {% endblock meta %}
@@ -639,12 +675,14 @@
             <h1 class="title">Welcome{% if request.user.is_authenticated %} {{ request.user.username }}{% else %}{% endif %},<br>
                 <span class="subtitle">mau sarapan apa hari ini?</span>
             </h1>
-            <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+            <p class="description">Temukan tempat sarapan terbaik di Depok dalam sekali klik!</p>
+            <a href="#how-nyarap" class="btn-get-started">Get Started</a>
         </div>
     </div>
 
-    <div style="width: 100%; max-width: 1200px; margin: 30px auto; padding: auto;">
-        <h2 style="text-align: center; color: #2E2C49; font-size: 46px; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 60px;">How Nyarap Works?</h2>
+
+    <div id="how-nyarap" class="how-nyarap-section">
+        <h2 class="how-nyarap-title">How Nyarap Works?</h2>
         
         <div style="display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
             <!-- Step 1 -->
@@ -688,6 +726,7 @@
             </div>
         </div>
     </div>
+</div>
     <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
     {% if not request.user.is_authenticated or not user_preferences %}
     <div class="recommendation-section">
@@ -731,30 +770,7 @@
                 </div>
             </div>
 
-            <!-- Delete Preferences Confirmation Modal -->
-            <div id="deletePreferencesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
-                    <div class="text-center">
-                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Preferences</h3>
-                        <p class="text-gray-500 mb-6">Are you sure you want to delete your preferences? This action cannot be undone.</p>
-                        <div class="flex justify-center gap-4">
-                            <button onclick="closeDeleteModal()" 
-                                    class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
-                                Cancel
-                            </button>
-                            <button id="confirmDeleteBtn"
-                                    class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% include 'delete_preference_modals.html' %}
             <div class="preference-content">
                 <!-- Location Preference Item -->
                 <div class="preference-item">
@@ -900,6 +916,93 @@
 
 
 <script>
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to show the delete confirmation modal
+function showDeleteModal() {
+    const modal = document.getElementById('deletePreferencesModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+// Function to close the delete confirmation modal
+function closeDeleteModal() {
+    const modal = document.getElementById('deletePreferencesModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+// Function to handle the deletion of preferences
+async function handleDelete() {
+    try {
+        const csrftoken = getCookie('csrftoken');
+        const response = await fetch('/delete-preferences/', {  // Updated URL
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'  // Important for CSRF
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            closeDeleteModal();
+            window.location.reload();
+        } else {
+            alert('Error deleting preferences: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while deleting preferences');
+    }
+}
+
+// Initialize event listeners when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listener for delete button
+    const deleteBtn = document.getElementById('deletePreferencesBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', showDeleteModal);
+    }
+
+    // Close modal when clicking outside
+    const deleteModal = document.getElementById('deletePreferencesModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(event) {
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    }
+
+    // Close modal when pressing ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            closeDeleteModal();
+        }
+    });
+});
+
 function scrollCategories(direction) {
     const container = document.querySelector('.category-container');
     const scrollAmount = 220;
@@ -983,84 +1086,6 @@ document.querySelectorAll('.category-item').forEach(item => {
             }
         });
     });
-// Create a utility function to handle the deletion of preferences
-// Function to show the delete confirmation modal
-function showDeleteModal() {
-    const modal = document.getElementById('deletePreferencesModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-}
 
-// Function to close the delete confirmation modal
-function closeDeleteModal() {
-    const modal = document.getElementById('deletePreferencesModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-}
-
-// Function to handle the deletion of preferences
-async function handleDelete() {
-    try {
-        const response = await fetch('mein/delete-preferences/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.status === 'success') {
-            // Close modal and reload page to reflect changes
-            closeDeleteModal();
-            window.location.reload();
-        } else {
-            alert('Error deleting preferences: ' + (data.message || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while deleting preferences');
-    }
-}
-
-// Initialize event listeners when document is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Get all required elements
-    const deleteModal = document.getElementById('deletePreferencesModal');
-    const deleteBtn = document.getElementById('deletePreferencesBtn');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-    // Add click event listener for delete button
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', showDeleteModal);
-    }
-
-    // Add click event listener for confirm delete button
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', handleDelete);
-    }
-
-    // Close modal when clicking outside
-    if (deleteModal) {
-        deleteModal.addEventListener('click', function(event) {
-            if (event.target === deleteModal) {
-                closeDeleteModal();
-            }
-        });
-    }
-
-    // Close modal when pressing ESC key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
-            closeDeleteModal();
-        }
-    });
-});
 </script>
 

@@ -79,15 +79,7 @@
         </div>
 
         <!-- Wishlist Items Section -->
-        {% if wishlist_items %}
-        <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for item in wishlist_items %}
-                {% include 'product_card.html' with item=item.restaurant %}
-            {% empty %}
-                <p>Your wishlist is empty. Start adding your favorite products!</p>
-            {% endfor %}
-        </div>
-        <!-- {% else %}
+        {% if wishlist_items|length == 0 %}
         <div class="text-center py-12">
             <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <span class="text-4xl">🍽️</span>
@@ -95,7 +87,7 @@
             <h3 class="text-xl font-medium text-gray-900 mb-2">Your wishlist is empty</h3>
             <p class="text-gray-600">Start adding your favorite restaurants to your wishlist!</p>
         </div>
-        {% endif %} -->
+        {% endif %}
 
         <!-- Delete Collection Confirmation Modal -->
         <div id="deleteCollectionModal" 
