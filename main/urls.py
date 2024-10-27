@@ -22,8 +22,7 @@ urlpatterns = [
     path('recommendations/list/product/<int:product_id>/', product_details_recommendation, name='product_details_recommendation'),
     path('delete-preferences/', delete_preferences, name='delete_preferences'),
     path('add-to-wishlist/<int:product_id>/', add_to_wishlist, name='add_to_wishlist'),
-    path('add_comment/<int:product_id>/', add_comment, 
-         name='add_comment'),  # Pastikan ini sesuai
+    path('add_comment/<int:product_id>/', add_comment, name='add_comment'),  # Pastikan ini sesuai
     path('delete_comment/<int:comment_id>/', delete_comment, name='delete_comment'),
     path('edit_comment/<int:comment_id>/', edit_comment, name='edit_comment'),
 ]
