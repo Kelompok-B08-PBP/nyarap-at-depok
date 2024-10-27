@@ -23,12 +23,8 @@ def load_recommendations_from_excel():
         excel_path = settings.EXCEL_DATA_PATH
         df = pd.read_excel(excel_path)
         kategori_mapping = {
-            'Sarapan Sehat': 'makanan_sehat',
-            'sarapan sehat': 'makanan_sehat',
             'Makanan Sehat': 'makanan_sehat',
-            'Sarapan Berat': 'makanan_berat',
-            'sarapan berat': 'makanan_berat',
-            'Makanan berat': 'makanan_berat'
+            'Makanan Berat': 'makanan_berat'
         }
         
         # Standardisasi kategori sebelum lowercase dan strip
@@ -154,7 +150,7 @@ def show_main(request):
                                         if price_value == 0 or price_str.lower() == 'nan':
                                             new_item['display_price'] = "Harga belum tersedia"
                                         else:
-                                            new_item['display_price'] = f"Rp {price_value:,.0f}"
+                                            new_item['display_price'] = f"Rp {price_value}"
                                         filtered_recommendations.append(new_item)
                                 except ValueError:
                                     # If price conversion fails, include item with "Harga belum tersedia"
@@ -708,12 +704,20 @@ def product_details(request, category, product_id):
         if not product:
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
+        product['id'] = product_id 
+        try:
+            from reviews.models import Review
+            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
+        except ImportError:
+            reviews = []
         
         context = {
             'product': product,
             'category': category,
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
+            'reviews': reviews,
+            'show_reviews': False  # Default tidak menampilkan review section
         }
         return render(request, 'product_details.html', context)
     except ValueError:

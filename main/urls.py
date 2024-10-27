@@ -21,4 +21,6 @@ urlpatterns = [
     path('category/<str:category>/product/<int:product_id>/', product_details, name='product_details'),
     path('recommendations/list/product/<int:product_id>/', product_details_recommendation, name='product_details_recommendation'),
     path('delete-preferences/', delete_preferences, name='delete_preferences'),
+    
+    
 ]
