@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Wishlist, Collection, CollectionItem, Restaurant
 from .forms import CollectionForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def wishlist_page(request):
@@ -37,11 +39,14 @@ def remove_from_wishlist(request, restaurant_id):
     CollectionItem.objects.filter(restaurant=restaurant).delete()
     return redirect('wishlist_page')
 
+@csrf_exempt
 @login_required
 def remove_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-    collection.delete()
-    return redirect('wishlist_page')
+    if request.method == "POST":
+        collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
+        collection.delete()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False}, status=400)
 
 @login_required
 def edit_collection(request, collection_id):
@@ -55,3 +60,23 @@ def edit_collection(request, collection_id):
         form = CollectionForm(instance=collection)
 
     return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
+@login_required
+def add_to_wishlist(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Restaurant, id=product_id)
+        wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+        
+        # Tambahkan produk ke wishlist
+        if not CollectionItem.objects.filter(collection__wishlist=wishlist, restaurant=product).exists():
+            collection = Collection.objects.get_or_create(wishlist=wishlist, name="Default Collection")[0]
+            CollectionItem.objects.create(collection=collection, restaurant=product)
+        
+        # Arahkan pengguna ke halaman wishlist
+        return redirect('wishlist_page')
+
+@login_required
+def remove_from_wishlist(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    CollectionItem.objects.filter(restaurant=restaurant, collection__wishlist__user=request.user).delete()
+    return redirect('wishlist_page')

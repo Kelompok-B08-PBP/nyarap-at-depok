@@ -65,56 +65,16 @@
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-
-                <!-- Delete Collection Confirmation Modal -->
-                <div id="deleteCollectionModal" 
-                    class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
-                    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Collection</h3>
-                        <p class="text-gray-500 mb-6">Are you sure you want to delete this collection? This action cannot be undone.</p>
-                        <div class="flex justify-end gap-4">
-                            <button onclick="closeDeleteModal()" 
-                                    class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
-                                Cancel
-                            </button>
-                            <form id="deleteCollectionForm" method="POST" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">
-                                    Delete
-                                </button>
-                            </form>
-                        </div>
+                {% empty %}
+                <!-- Message when no collections are present
+                <div class="text-center py-12">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span class="text-4xl">🍽️</span>
                     </div>
-                </div>
-
-                <script>
-                    function confirmDeleteCollection(collectionId) {
-                        const modal = document.getElementById('deleteCollectionModal');
-                        const form = document.getElementById('deleteCollectionForm');
-                        
-                        // Set form action URL sesuai dengan URL dari views
-                        form.action = `{% url 'remove_collection' 0 %}`.replace('0', collectionId);
-                        
-                        // Show modal
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    }
-
-                    function closeDeleteModal() {
-                        const modal = document.getElementById('deleteCollectionModal');
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    }
-
-                    // Close modal when clicking outside
-                    document.getElementById('deleteCollectionModal').addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closeDeleteModal();
-                        }
-                    });
-                </script>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">You have no collections yet</h3>
+                    <p class="text-gray-600">Start creating collections to organize your favorite restaurants!</p>
+                </div> -->
+                {% endfor %}
             </div>
         </div>
 
@@ -127,43 +87,66 @@
             <h3 class="text-xl font-medium text-gray-900 mb-2">Your wishlist is empty</h3>
             <p class="text-gray-600">Start adding your favorite restaurants to your wishlist!</p>
         </div>
-        {% else %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {% for item in wishlist_items %}
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
-                <div class="relative">
-                    <img src="{{ item.restaurant.image_url }}" 
-                         class="w-full h-48 object-cover" 
-                         alt="{{ item.restaurant.name }}">
-                    <div class="absolute top-4 right-4">
-                        <form method="POST" action="{% url 'remove_from_wishlist' item.restaurant.id %}">
-                            {% csrf_token %}
-                            <button type="submit" 
-                                    class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center
-                                           hover:bg-red-50 transition duration-300 group">
-                                <span class="text-red-500 text-xl group-hover:scale-110 transition duration-300">❤️</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ item.restaurant.name }}</h3>
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-600">
-                            {{ item.restaurant.category }}
-                        </span>
-                    </div>
-                    <a href="#" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition duration-300">
-                        <span>View Details</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
+        {% endif %}
+
+        <!-- Delete Collection Confirmation Modal -->
+        <div id="deleteCollectionModal" 
+             class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Collection</h3>
+                <p class="text-gray-500 mb-6">Are you sure you want to delete this collection? This action cannot be undone.</p>
+                <div class="flex justify-end gap-4">
+                    <button onclick="closeDeleteModal()" 
+                            class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteButton" 
+                            class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">
+                        Delete
+                    </button>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        {% endif %}
     </div>
 </div>
+
+<script>
+    let collectionIdToDelete = null;
+
+    function confirmDeleteCollection(collectionId) {
+        collectionIdToDelete = collectionId;  // Store the collection ID to delete
+        const modal = document.getElementById('deleteCollectionModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteCollectionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Handle delete action with AJAX
+    document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+        if (collectionIdToDelete) {
+            fetch(`/wishlist/collection/remove/${collectionIdToDelete}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Remove the deleted collection element from the page
+                    document.querySelector(`button[onclick="confirmDeleteCollection('${collectionIdToDelete}')"]`).closest('div.w-64').remove();
+                }
+                closeDeleteModal();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    });
+</script>
 {% endblock %}

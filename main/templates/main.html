@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block meta %}
+<title>Nyarap @Depok</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Sarala:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
@@ -19,8 +20,8 @@
     background: url("{% static 'images/backgroundhero.png' %}") no-repeat center center;
     background-size: cover;
     position: relative;
-    margin-top: 80px;
-    padding-top: 100px;
+    margin-top: auto;
+    padding-top: auto;
     overflow: visible;
 }
 .content {
@@ -63,9 +64,9 @@
 }
 
 .recommendation-section {
-    width: 80%; /* Full width */
-    max-width: none; /* Remove max-width to allow full width */
-    margin: 0px auto 60px;
+    width: 80%; 
+    max-width: none; 
+    margin: 60px auto 60px;
     background: white;
     box-shadow: 4px -4px 13px rgba(0, 0, 0, 0.25);
     border-radius: 28px;
@@ -258,10 +259,9 @@
     font-family: 'Montserrat', sans-serif;
 }
 
-/* Updated category section styles */
 .category-section {
     max-width: 1200px;
-    margin: 0 auto 60px; /* Changed from margin: 60px auto to remove top margin */
+    margin: 0 auto 60px; 
     padding: 0 20px;
 }
 .category-title {
@@ -525,9 +525,7 @@
 }
 
 .rekomendasi-main-section {
-    padding: 60px 20px;
-    background: #FFFFFF;
-    margin-bottom: 60px;
+    padding: 2rem 1rem;
 }
 
 .rekomendasi-main-container {
@@ -559,9 +557,9 @@
 
 .rekomendasi-main-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .view-more-container {
@@ -609,6 +607,61 @@
         gap: 16px;
     }
 }
+.no-recommendations-section {
+    text-align: center;
+    background-color: white;
+    border-radius: 8px;
+    margin: 2rem auto;
+    max-width: 600px;
+}
+
+.no-recommendations-title {
+    font-size: 1.5rem;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+.no-recommendations-message {
+    color: #718096;
+    line-height: 1.6;
+}
+
+.btn-get-started {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: #C3372B;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-get-started:hover {
+    background-color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.how-nyarap-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0px auto;
+    padding: 80px 20px 30px; /* Tambahkan padding top untuk jarak dari navbar */
+    scroll-margin-top: 80px; /* Ini akan memberi jarak saat di-scroll menggunakan anchor link */
+}
+
+.how-nyarap-title {
+    text-align: center;
+    color: #2E2C49;
+    font-size: 46px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    margin-bottom: 60px;
+}
 
 </style>
 {% endblock meta %}
@@ -622,12 +675,14 @@
             <h1 class="title">Welcome{% if request.user.is_authenticated %} {{ request.user.username }}{% else %}{% endif %},<br>
                 <span class="subtitle">mau sarapan apa hari ini?</span>
             </h1>
-            <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+            <p class="description">Temukan tempat sarapan terbaik di Depok dalam sekali klik!</p>
+            <a href="#how-nyarap" class="btn-get-started">Get Started</a>
         </div>
     </div>
 
-    <div style="width: 100%; max-width: 1200px; margin: 60px auto; padding: 0 20px;">
-        <h2 style="text-align: center; color: #2E2C49; font-size: 46px; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 60px;">How Nyarap Works?</h2>
+
+    <div id="how-nyarap" class="how-nyarap-section">
+        <h2 class="how-nyarap-title">How Nyarap Works?</h2>
         
         <div style="display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
             <!-- Step 1 -->
@@ -671,6 +726,7 @@
             </div>
         </div>
     </div>
+</div>
     <!-- Show recommendation-section only if the user is not logged in or has no preferences -->
     {% if not request.user.is_authenticated or not user_preferences %}
     <div class="recommendation-section">
@@ -690,16 +746,31 @@
     <!-- Show preference-history-section only if user has set preferences -->
     {% if user_preferences %}
     <div class="preference-history-section">
+        {% csrf_token %}
         <div class="preference-container">
             <div class="preference-header">
                 <h2 class="preference-title">Preferensi Pilihanmu</h2>
-                <a href="{% url 'main:recommendations' %}" class="edit-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-                    </svg>
-                    Edit Preferensi
-                </a>
+                <div class="preference-header">
+                    <button data-modal-target="editPreferencesModal" data-modal-toggle="editPreferencesModal" 
+                            class="bg-[#F6D110] text-black px-6 py-3 rounded-full font-montserrat font-semibold hover:bg-[#e6c30f] transition-all duration-300 flex items-center gap-2"
+                            onclick="openModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                        Edit Preferensi
+                    </button>
+                    {% include 'edit_preference_ajax.html' %}
+                    <button id="deletePreferencesBtn", onclick="showDeleteModal()"
+                            class="bg-red-500 text-white px-6 py-3 rounded-full font-montserrat font-semibold hover:bg-red-600 transition-all duration-300 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Hapus Preferensi
+                    </button>
+                </div>
             </div>
+
+            {% include 'delete_preference_modals.html' %}
             <div class="preference-content">
                 <!-- Location Preference Item -->
                 <div class="preference-item">
@@ -733,7 +804,7 @@
                     <div class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
+                        </svg>
                     </div>
                     <div class="details">
                         <p class="label">Harga</p>
@@ -745,26 +816,36 @@
     </div>
     {% endif %} 
 
-    {% if recommendations %}
-    <section class="rekomendasi-main-section">
-        <div class="rekomendasi-main-container">
-            <h2 class="rekomendasi-main-title">Rekomendasi Nyarap </h2>
-            <div class="rekomendasi-main-grid">
-                {% for item in recommendations|slice:":4" %}
-                    {% include 'product_card.html' with item=item %}
-                {% endfor %}
-            </div>
-            
-            {% if recommendations|length > 4 %}
-            <div class="view-more-container">
-                <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
-                    Lihat Semua Rekomendasi
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </section>
+    {% if user_preferences %}
+        {% if recommendations|length > 0 %}
+            <section class="rekomendasi-main-section">
+                <div class="rekomendasi-main-container">
+                    <h2 class="rekomendasi-main-title">Rekomendasi Nyarap</h2>
+                    <div class="rekomendasi-main-grid">
+                        {% for item in recommendations|slice:":4" %}
+                            {% include 'product_card.html' with item=item %}
+                        {% endfor %}
+                    </div>
+                    {% if recommendations|length > 4 %}
+                        <div class="view-more-container">
+                            <a href="{% url 'main:recommendation_list' %}" class="view-more-btn">
+                                Lihat Semua Rekomendasi
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+        {% else %}
+            <section class="no-recommendations-section">
+                <div class="no-recommendations-container">
+                    <h2 class="no-recommendations-title">Maaf, tidak ada rekomendasi saat ini.</h2>
+                </div>
+            </section>
+        {% endif %}
     {% endif %}
+
+    
+
     
 <!-- main.html or wherever you have your category links -->
 
@@ -774,66 +855,161 @@
         <!-- Define categories explicitly to avoid template tag issues -->
         <a href="{% url 'main:browse_category' category='nasi' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Nasi" />
+                <img src="{% static 'images/nasi.png' %}" alt="Nasi" />
             </div>
             <div class="category-name">Nasi</div>
         </a>
         
         <a href="{% url 'main:browse_category' category='roti' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Roti" />
+                <img src="{% static 'images/roti.png' %}" alt="Roti" />
             </div>
             <div class="category-name">Roti</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='lontong' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Lontong" />
+                <img src="{% static 'images/lontong.png' %}" alt="Lontong" />
             </div>
             <div class="category-name">Lontong</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='cemilan' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Cemilan" />
+                <img src="{% static 'images/cemilan.png' %}" alt="Cemilan" />
             </div>
             <div class="category-name">Cemilan</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='minuman' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Minuman" />
+                <img src="{% static 'images/minuman.png' %}" alt="Minuman" />
             </div>
             <div class="category-name">Minuman</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='mie' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Mie" />
+                <img src="{% static 'images/mie.png' %}"" alt="Mie" />
             </div>
             <div class="category-name">Mie</div>
         </a>
 
-        <a href="{% url 'main:browse_category' category='telur' %}" class="category-item">
+        <a href="{% url 'main:browse_category' category='makanan_sehat' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Telur" />
+                <img src="{% static 'images/telur.png' %}" alt="Sarapan Sehat" />
             </div>
-            <div class="category-name">Telur</div>
+            <div class="category-name">Sarapan Sehat</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='bubur' %}" class="category-item">
             <div class="category-image">
-                <img src="/api/placeholder/120/120" alt="Bubur" />
+                <img src="{% static 'images/bubur.png' %}" alt="Bubur" />
             </div>
             <div class="category-name">Bubur</div>
         </a>
+
+        <a href="{% url 'main:browse_category' category='makanan_berat' %}" class="category-item">
+            <div class="category-image">
+                <img src="{% static 'images/makanan_berat.png' %}" alt="Makanan Berat" />
+            </div>
+            <div class="category-name">Sarapan Berat</div>
+        </a>
     </div>
 </div>
-{% endblock %}
 {% include 'footer.html' %}
+{% endblock %}
+
 
 
 <script>
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to show the delete confirmation modal
+function showDeleteModal() {
+    const modal = document.getElementById('deletePreferencesModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+// Function to close the delete confirmation modal
+function closeDeleteModal() {
+    const modal = document.getElementById('deletePreferencesModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+// Function to handle the deletion of preferences
+async function handleDelete() {
+    try {
+        const csrftoken = getCookie('csrftoken');
+        const response = await fetch('/delete-preferences/', {  // Updated URL
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'  // Important for CSRF
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            closeDeleteModal();
+            window.location.reload();
+        } else {
+            alert('Error deleting preferences: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while deleting preferences');
+    }
+}
+
+// Initialize event listeners when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listener for delete button
+    const deleteBtn = document.getElementById('deletePreferencesBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', showDeleteModal);
+    }
+
+    // Close modal when clicking outside
+    const deleteModal = document.getElementById('deletePreferencesModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(event) {
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    }
+
+    // Close modal when pressing ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            closeDeleteModal();
+        }
+    });
+});
+
 function scrollCategories(direction) {
     const container = document.querySelector('.category-container');
     const scrollAmount = 220;
@@ -917,6 +1093,6 @@ document.querySelectorAll('.category-item').forEach(item => {
             }
         });
     });
-    
+
 </script>
 
