@@ -870,5 +870,5 @@ def delete_preferences(request):
             'status': 'error',
             'message': 'Invalid request method'
         })
-    return redirect('main:home')
+    return redirect('main:show_main')
 
