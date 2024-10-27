@@ -18,7 +18,6 @@ import pandas as pd
 from django.conf import settings
 import hashlib
 
-
 def load_recommendations_from_excel():
     try:
         excel_path = settings.EXCEL_DATA_PATH
@@ -566,79 +565,9 @@ def edit_preferences(request):
     
     return render(request, 'edit_preference_ajax.html', context)
 
-def get_product_by_id(product_id):
-    """
-    Get product details by ID from the recommendations data
-    """
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        
-        # Search through all categories and locations
-        for category, locations in all_recommendations.items():
-            for location, items in locations.items():
-                for item in items:
-                    # Add an ID to each item based on its position
-                    item['id'] = hash(f"{item['name']}_{item['restaurant']}_{location}")
-                    
-                    if item['id'] == product_id:
-                        # Add additional fields needed for display
-                        item['category'] = category
-                        item['location'] = location
-                        
-                        # Format price if needed
-                        if 'price' in item:
-                            try:
-                                price = float(str(item['price']).replace(',', ''))
-                                item['display_price'] = f"Rp {price:,.0f}"
-                            except (ValueError, TypeError):
-                                item['display_price'] = "Harga belum tersedia"
-                        
-                        return item
-                    
-        return None
-        
-    except Exception as e:
-        return None
-
-def get_recommendations_by_category(category):
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        category_recommendations = []
-        
-        if category.lower() in all_recommendations:
-            # Go through all locations for this category
-            for location, items in all_recommendations[category.lower()].items():
-                for item in items:
-                    new_item = item.copy()
-                    # Generate a unique ID for each item
-                    new_item['id'] = hash(f"{item['name']}_{item['restaurant']}_{location}")
-                    
-                    # Handle price display
-                    price_str = item.get('price', '0')
-                    if price_str == '0' or not str(price_str).strip():
-                        new_item['display_price'] = "Harga belum tersedia"
-                    else:
-                        try:
-                            price_value = float(str(price_str).replace(',', ''))
-                            new_item['display_price'] = f"Rp {price_value:,.0f}"
-                        except (ValueError, TypeError):
-                            new_item['display_price'] = "Harga belum tersedia"
-                    
-                    # Add location information
-                    new_item['kecamatan'] = location
-                    category_recommendations.append(new_item)
-    
-        return category_recommendations
-        
-    except Exception as e:
-        return []
-
 def generate_product_id(name, restaurant, location):
-    # Create a string combining all the identifying information
     identifier = f"{name}_{restaurant}_{location}"
-    # Create a hash of the identifier
     hash_object = hashlib.md5(identifier.encode())
-    # Convert the first 8 characters of the hash to a positive integer
     return int(hash_object.hexdigest()[:8], 16)
 
 def get_product_by_id(product_id):
@@ -773,10 +702,6 @@ def product_details(request, category, product_id):
         return redirect('main:browse_category', category=category)
 
 def get_product_by_id(product_id):
-    """
-    Get product details by ID from the recommendations data
-    Handles both numeric IDs and hash-based IDs
-    """
     try:
         all_recommendations = load_recommendations_from_excel()
         found_product = None
@@ -850,8 +775,6 @@ def product_details_recommendation(request, product_id):
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:recommendation_list')
     
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
 
 @csrf_exempt
 @require_http_methods(["POST"])
