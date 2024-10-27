@@ -57,13 +57,19 @@ def load_recommendations_from_excel():
                 except (ValueError, AttributeError):
                     rating = 0.0
                 
+                # Handle image URL
+                image_url = row.get('Link Foto', '')
+                if pd.isna(image_url) or not image_url.strip():
+                    image_url = '/api/placeholder/400/320'
+
                 recommendations[kategori][kecamatan].append({
                     'name': str(row['Nama Produk']).strip(),
                     'restaurant': str(row['nama_restoran']).strip(),
                     'rating': rating,
                     'operational_hours': str(row['Jam Operasional']).strip(),
                     'location': str(row['Lokasi']),
-                    'price': clean_price
+                    'price': clean_price,
+                    'image_url': image_url
                 })
                 
             except KeyError as e:
@@ -463,22 +469,23 @@ def recommendation_list(request):
     else:
         recommended_products = get_recommendations(breakfast_type, location, price_range)
 
-    # Add ID to each recommended product
+    # Add ID to each recommended product - Gunakan current_id untuk konsistensi
     recommendations_with_id = []
-    for index, product in enumerate(recommended_products, start=1):
-        product_dict = product
-        if not isinstance(product, dict):
-            product_dict = {
-                'name': getattr(product, 'name', ''),
-                'price': getattr(product, 'price', ''),
-                'restaurant': getattr(product, 'restaurant', ''),
-                'rating': getattr(product, 'rating', ''),
-                'kategori': getattr(product, 'kategori', ''),
-                'kecamatan': getattr(product, 'kecamatan', ''),
-                'operational_hours': getattr(product, 'operational_hours', ''),
-                'image_url': getattr(product, 'image_url', ''),
-            }
-        product_dict['id'] = index
+    current_id = 1  # Mulai dari 1
+    
+    for product in recommended_products:
+        product_dict = product if isinstance(product, dict) else {
+            'name': getattr(product, 'name', ''),
+            'price': getattr(product, 'price', ''),
+            'restaurant': getattr(product, 'restaurant', ''),
+            'rating': getattr(product, 'rating', ''),
+            'kategori': getattr(product, 'kategori', ''),
+            'kecamatan': getattr(product, 'kecamatan', ''),
+            'operational_hours': getattr(product, 'operational_hours', ''),
+            'image_url': getattr(product, 'image_url', ''),
+        }
+        product_dict['id'] = current_id
+        current_id += 1  # Increment ID
         recommendations_with_id.append(product_dict)
 
     context = {
@@ -494,6 +501,7 @@ def recommendation_list(request):
     }
     
     return render(request, 'recommendation_list.html', context)
+
 
 @login_required
 def edit_preferences(request):
@@ -730,6 +738,7 @@ def get_product_by_id(product_id):
                             'rating': float(str(item.get('rating', '0')).replace(',', '.')),
                             'operational_hours': item.get('operational_hours', ''),
                             'location': item.get('location', ''),
+                             'image_url': item.get('image_url', '/api/placeholder/800/400'),
                         })
                         
                         # Handle price display
@@ -756,29 +765,68 @@ def get_product_by_id(product_id):
 
 def product_details_recommendation(request, product_id):
     try:
-        # Convert product_id to int and get product
-        product = get_product_by_id(int(product_id))
-        
-        if not product:
+        # Get user preferences
+        if request.user.is_authenticated:
+            try:
+                preference = UserPreference.objects.get(user=request.user)
+                breakfast_type = preference.preferred_breakfast_type
+                location = preference.preferred_location
+                price_range = preference.preferred_price_range
+            except UserPreference.DoesNotExist:
+                messages.error(request, 'Preferensi tidak ditemukan.')
+                return redirect('main:recommendation_list')
+        else:
+            breakfast_type = request.session.get('preferred_breakfast_type')
+            location = request.session.get('preferred_location')
+            price_range = request.session.get('preferred_price_range')
+            if not all([breakfast_type, location, price_range]):
+                messages.error(request, 'Preferensi tidak ditemukan.')
+                return redirect('main:recommendation_list')
+
+        # Get recommendations based on preferences
+        if breakfast_type == 'masih_bingung':
+            recommended_products = get_recommendations_for_undecided(location, price_range)
+        else:
+            recommended_products = get_recommendations(breakfast_type, location, price_range)
+
+        # Find the product with matching ID
+        try:
+            product_index = int(product_id) - 1
+            if 0 <= product_index < len(recommended_products):
+                product = recommended_products[product_index]
+                
+                # Format the product data
+                formatted_product = {
+                    'id': int(product_id),
+                    'name': product.get('name', ''),
+                    'restaurant': product.get('restaurant', ''),
+                    'rating': product.get('rating', 0.0),
+                    'operational_hours': product.get('operational_hours', ''),
+                    'location': product.get('location', ''),
+                    'display_price': product.get('display_price', 'Harga belum tersedia'),
+                    'image_url': product.get('image_url', '/api/placeholder/800/400'),
+                    'kecamatan': product.get('kecamatan', ''),
+                    'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title()
+                }
+
+                context = {
+                    'product': formatted_product,
+                    'is_authenticated': request.user.is_authenticated,
+                    'name': request.user.username if request.user.is_authenticated else None,
+                    'source': 'recommendations'
+                }
+                
+                return render(request, 'product_details.html', context)
+            else:
+                raise ValueError('Product index out of range')
+        except (ValueError, IndexError):
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:recommendation_list')
             
-        context = {
-            'product': product,
-            'is_authenticated': request.user.is_authenticated,
-            'name': request.user.username if request.user.is_authenticated else None,
-            'source': 'recommendations',
-        }
-        
-        return render(request, 'product_details.html', context)
-    except ValueError:
-        messages.error(request, 'ID produk tidak valid.')
-        return redirect('main:recommendation_list')
     except Exception as e:
-        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
+        messages.error(request, f'Terjadi kesalahan saat memuat detail produk: {str(e)}')
         return redirect('main:recommendation_list')
     
-
 @login_required
 @csrf_exempt
 def delete_preferences(request):

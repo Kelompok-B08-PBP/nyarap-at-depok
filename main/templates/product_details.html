@@ -236,8 +236,12 @@
     <div class="container">
         <div class="product-details-card">
             <div class="product-header">
-                <img src="/api/placeholder/800/400" alt="{{ product.name }}">
-                <div class="product-category">{{ product.kategori }}</div>
+                {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='/api/placeholder/800/400'">
+                {% else %}
+                    <img src="/api/placeholder/800/400" alt="{{ product.name }}">
+                {% endif %}
+                <div class="product-category">{{ product.category }}</div>
             </div>
             
             <div class="product-content">
