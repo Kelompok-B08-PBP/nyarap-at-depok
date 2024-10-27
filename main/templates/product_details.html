@@ -2,244 +2,287 @@
 {% load static %}
 
 {% block meta %}
-{% with "product-details-page" as body_class %}
+<title>Product Details</title>
+<meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
 
-<title>Details</title>
+{% block content %}
 {% include 'navbar.html' %}
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
 
+    .container {
+        max-width: 700px; /* Reduced from 1200px */
+        margin: 100px auto;
+        padding: 0 16px;
+    }
+
+    /* Back Button Style */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 8px 16px;
+        background: white;
+        border-radius: 12px;
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        background: #f8fafc;
+        transform: translateY(-1px);
+    }
+
+    .product-details-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-header {
+        position: relative;
+        width: 100%;
+        height: 300px; /* Reduced from 400px */
+        overflow: hidden;
+    }
+
+    .product-header img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-category {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .product-content {
+        padding: 24px;
+    }
+
+    .title-section {
+        margin-bottom: 20px;
+    }
+
+    .title-info h1 {
+        font-size: 24px; /* Reduced from 32px */
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 6px;
+    }
+
+    .restaurant-name {
+        font-size: 16px; /* Reduced from 20px */
+        color: #4a5568;
+        margin-bottom: 12px;
+    }
+
+    .rating-price {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #4CAF50;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .price {
+        font-size: 20px; /* Reduced from 24px */
+        font-weight: 700;
+        color: #2d3748;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 20px 0;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #4a5568;
+        font-size: 14px;
+    }
+
+    .info-item svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-wishlist {
+        background: #EDF2F7;
+        color: #2D3748;
+    }
+
+    .btn-review {
+        background: #FF5722;
+        color: white;
+    }
+
+    .reviews-section {
+        margin-top: 32px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .review-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .reviewer {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2d3748;
+    }
+
+    .review-date {
+        color: #718096;
+        font-size: 13px;
+    }
+
+    .review-text {
+        color: #4a5568;
+        line-height: 1.5;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
         .container {
-            max-width: 1200px;
-            margin: 40px auto 60px; /* Increased top and bottom margins */
-            padding: 0 24px; /* Removed vertical padding, kept horizontal */
-        }
-
-        .product-details-card {
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-header {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-        }
-
-        .product-header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-category {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 1;
-        }
-
-        .product-content {
-            padding: 32px;
-        }
-
-        .title-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 24px;
-        }
-
-        .title-info h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-
-        .restaurant-name {
-            font-size: 20px;
-            color: #4a5568;
-            margin-bottom: 16px;
-        }
-
-        .rating-price {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .rating {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #4CAF50;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .rating span:first-child {
-            color: #FFD700;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            margin: 24px 0;
-            padding: 24px;
-            background: #f8fafc;
-            border-radius: 16px;
-        }
-
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #4a5568;
-        }
-
-        .info-item svg {
-            flex-shrink: 0;
-            width: 24px;
-            height: 24px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-
-        .btn-wishlist {
-            background: #EDF2F7;
-            color: #2D3748;
-        }
-
-        .btn-review {
-            background: #FF5722;
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .reviews-section {
-            margin-top: 48px;
-        }
-
-        .section-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 24px;
-        }
-
-        .review-card {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 16px;
-        }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
+            padding: 12px;
+            margin: 12px auto;
         }
 
         .reviewer {
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .review-date {
-            color: #718096;
             font-size: 14px;
         }
 
+        .review-date {
+            font-size: 12px;
+        }
+
         .review-text {
-            color: #4a5568;
-            line-height: 1.6;
+            font-size: 13px;
+        }
+        .product-header {
+            height: 240px;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-
-            .product-header {
-                height: 300px;
-            }
-
-            .product-content {
-                padding: 24px;
-            }
-
-            .title-section {
-                flex-direction: column;
-            }
-
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
+        .back-btn {
+            padding: 6px 12px;
+            font-size: 14px;
         }
-    </style>
-</head>
-<body>
-    <div class="container">
+
+        .product-content {
+            padding: 16px;
+        }
+
+        .title-info h1 {
+            font-size: 20px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container">
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+    </a>
         <div class="product-details-card">
             <div class="product-header">
-                <img src="https://via.placeholder.com/800x400" alt="{{ product.name }}">
-                <div class="product-category">{{ product.kategori }}</div>
+                {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='/api/placeholder/800/400'">
+                {% else %}
+                    <img src="/api/placeholder/800/400" alt="{{ product.name }}">
+                {% endif %}
+                <div class="product-category">{{ product.category }}</div>
             </div>
             
             <div class="product-content">
@@ -274,12 +317,6 @@
                     </div>
                     <div class="info-item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 3h18v18H3zM12 8v8m-4-4h8"></path>
-                        </svg>
-                        <span>Available for Delivery</span>
-                    </div>
-                    <div class="info-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
                         </svg>
                         <span>{{ product.total_reviews }} Reviews</span>
@@ -289,85 +326,83 @@
                 <div class="action-buttons">
                     <form action="{% url 'add_to_wishlist' product.id %}" method="POST">
                         {% csrf_token %}
-                        <button type="button" class="btn btn-wishlist">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                            Add to Wishlist
-                        </button>
                     </form> 
                     <a href="{% url 'wishlist_page' %}" class="nav-link {% if request.path == '/wishlist/' %}active{% endif %}">
                         Wishlist
                     </a>  
                     
-                <!-- Add Review Button -->
-                <div class="flex justify-center mb-8">
-                    <button id="addReviewBtn" 
-                        data-add-url="{% url 'reviews:add_product_review_ajax' product.id %}"
-                        class="group relative inline-flex items-center px-8 py-3 overflow-hidden rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700">
-                        <span class="absolute right-0 translate-x-full group-hover:-translate-x-4 transition-transform">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                            </svg>
-                        </span>
-                        <span class="pr-4 group-hover:pr-8 transition-all">Add Review</span>
-                    </button>
-                </div>
-
-                <div class="reviews-section">
-                    <h2 class="section-title">Customer Reviews</h2>
-
-                    <!-- Reviews Grid -->
-                    <div id="reviewsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for review in reviews %}
-                        <div class="review-card bg-white rounded-lg shadow-md p-6 mb-4">
-                            <!-- Review Header -->
-                            <div class="review-header flex justify-between items-center mb-2">
-                                <div class="reviewer text-xl font-semibold">{{ review.restaurant_name }}</div>
-                                <div class="review-date text-gray-500 text-sm">{{ review.date_added }}</div>
-                            </div>
-
-                            <!-- Food Name -->
-                            <p class="text-gray-600 mb-2 font-medium">Food: {{ review.food_name }}</p>
-
-                            <!-- Star Rating -->
-                            <div class="review-rating flex space-x-1 mb-2">
-                                {% for i in "12345" %}
-                                <span class="star {% if i|add:0 <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">★</span>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Review Text -->
-                            <div class="review-text text-gray-700 mb-4">
-                                {{ review.review }}
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="flex space-x-2 mt-4">
-                                <a href="{% url 'reviews:edit_product_review' review.id %}" 
-                                class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
-                                    Edit
-                                </a>
-                                <form action="{% url 'reviews:delete_product_review' review.id %}" method="post" 
-                                    class="delete-review-form" data-delete-url="{% url 'reviews:delete_product_review' review.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" 
-                                            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endfor %}
+                    {% if user.is_authenticated %}
+                    <!-- Add Review Button -->
+                    <div class="flex justify-center mb-8">
+                        <button id="addReviewBtn" 
+                            data-add-url="{% url 'reviews:add_product_review_ajax' %}"
+                            class="group relative inline-flex items-center px-8 py-3 overflow-hidden rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700">
+                            <span class="absolute right-0 translate-x-full group-hover:-translate-x-4 transition-transform">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </span>
+                            <span class="pr-4 group-hover:pr-8 transition-all">Add Review</span>
+                        </button>
                     </div>
+                {% else %}
+                    <a href="{% url 'main:login' %}" class="btn btn-review">
+                        Login to Write Review
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="reviews-section">
+                <h2 class="section-title">Customer Reviews</h2>
+                <div id="reviewsContainer" class="review-list">
+                    {% for review in reviews %}
+                    <div class="review-card bg-white rounded-lg shadow-md p-6 mb-4">
+                        <!-- Review Header -->
+                        <div class="review-header flex justify-between items-center mb-2">
+                            <div class="reviewer text-xl font-semibold">{{ review.restaurant_name }}</div>
+                            <div class="review-date text-gray-500 text-sm">{{ review.date_added }}</div>
+                        </div>
+
+                        <!-- Food Name -->
+                        <p class="text-gray-600 mb-2 font-medium">Food: {{ review.food_name }}</p>
+
+                        <!-- Star Rating -->
+                        <div class="review-rating flex space-x-1 mb-2">
+                            {% for i in "12345" %}
+                                <span class="star {% if i|add:0 <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Review Text -->
+                        <div class="review-text text-gray-700 mb-4">
+                            {{ review.review }}
+                        </div>
+
+                        <!-- Action Buttons (Edit and Delete, shown only for the review owner) -->
+                        {% if user == review.user %}
+                        <div class="flex space-x-2 mt-4">
+                            <a href="{% url 'reviews:edit_product_review' review.id %}" 
+                            class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                                Edit
+                            </a>
+                            <form action="{% url 'reviews:delete_product_review' review.id %}" method="post" class="delete-review-form">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
                 </div>
+                {% if not reviews %}
+                    <p class="no-reviews-placeholder">No reviews yet.</p>
+                {% endif %}
             </div>
         </div>
-    </div>
-</div>
-{% include 'create_product_review.html' %}
-<meta name="csrf-token" content="{{ csrf_token }}">
-</body>
-<script src="{% static 'js/reviewSubmission.js' %}"></script>
-</html>   
-{% endblock %}
+        
+        {% include 'create_product_review.html' %}
+        <script src="{% static 'js/reviewSubmission.js' %}"></script>
+        {% endblock %}
