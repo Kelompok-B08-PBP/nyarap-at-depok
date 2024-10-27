@@ -132,11 +132,11 @@
                 <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
                     Pilih preferensi sarapanmu
                 </h1>
-                <p class="text-lg text-gray-200 max-w-2xl">
+                <p class="text-lg text-gray-200 max-w-10xl">
                     {% if is_authenticated %}
-                        Hai {{ name }}, ayo tentukan sarapan favoritmu!
+                        Hai {{ name }}, ayo tentukan sarapan favoritmu! preferensimu akan disimpan untuk referensi di masa mendatang
                     {% else %}
-                        Temukan rekomendasi sarapan terbaik untukmu
+                        Temukan rekomendasi sarapan terbaik untukmu. Silakan login untuk menyimpan preferensimu!
                     {% endif %}
                 </p>
             </div>
@@ -147,12 +147,7 @@
         <!-- Form Header -->
         <div class="text-center mb-8">
             <h2 class="text-4xl font-bold text-gray-900 mb-4">Kategori Sarapan</h2>
-            <p class="text-gray-500 text-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
-            {% if is_authenticated %}
-            <p class="mt-2 text-gray-600">Hai {{ name }}, preferensimu akan disimpan untuk referensi di masa mendatang</p>
-            {% else %}
-            <p class="mt-2 text-gray-600">Silakan login untuk menyimpan preferensimu</p>
-            {% endif %}
+            <p class="text-gray-500 text-lg">Pilih kategori makanan yang kamu inginkan.</p>
         </div>
 
         {% if messages %}
@@ -224,6 +219,17 @@
                     </div>
                 </label>
 
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="makanan_berat" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/makanan_berat.png' %}" alt="makanan_berat" class="w-30 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Sarapan</span>
+                            <span class="text-gray-700 font-medium">Berat</span>
+                        </div>
+                    </div>
+                </label>
+
                 <!-- Cemilan -->
                 <label class="relative cursor-pointer">
                     <input type="radio" name="breakfast_category" value="cemilan" class="peer sr-only">
@@ -235,13 +241,13 @@
                     </div>
                 </label>
 
-                <!-- Telur -->
                 <label class="relative cursor-pointer">
-                    <input type="radio" name="breakfast_category" value="telur" class="peer sr-only">
+                    <input type="radio" name="breakfast_category" value="makanan_sehat" class="peer sr-only">
                     <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
                         <div class="flex flex-col items-center">
-                            <img src="{% static 'images/telur.png' %}" alt="Telur" class="w-20 h-20 mb-2">
-                            <span class="text-gray-700 font-medium">Telur</span>
+                            <img src="{% static 'images/telur.png' %}" alt="makanan_sehat" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Sarapan</span>
+                            <span class="text-gray-700 font-medium">Sehat</span>
                         </div>
                     </div>
                 </label>
