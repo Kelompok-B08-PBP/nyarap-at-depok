@@ -1,0 +1,227 @@
+<div id="editPreferencesModal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 overflow-y-auto overflow-x-hidden">
+    <div class="fixed inset-0 bg-black/50" onclick="closeModal()"></div>
+    <div class="relative bg-white rounded-lg shadow-xl mx-auto mt-10 max-w-2xl">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-xl font-semibold text-gray-900">Edit Preferensi</h3>
+            <button onclick="closeModal()" type="button" class="text-gray-400 hover:text-gray-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-6">
+            <form id="editPreferencesForm" class="space-y-6">
+                <input type="hidden" name="csrfmiddlewaretoken" id="csrfToken" value="">
+                
+                <!-- Breakfast Categories -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-3">Kategori Sarapan</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="masih_bingung" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Masih Bingung</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="nasi" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Nasi</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="roti" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Roti</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="lontong" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Lontong</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="cemilan" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Cemilan</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="minuman" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Minuman</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="minuman" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Mie</span>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="breakfast_category" value="minuman" class="h-4 w-4 text-[#FF5B00]">
+                            <span class="text-gray-700">Telur</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-3">Lokasi</label>
+                    <select name="district_category" class="w-full rounded-lg border-gray-300 focus:border-[#FF5B00] focus:ring-[#FF5B00]">
+                        <option value="">Pilih Lokasi</option>
+                        <option value="Beji">Beji</option>
+                        <option value="bojongsari">Bojongsari</option>
+                        <option value="cilodong">Cilodong</option>
+                        <option value="cimanggis">Cimanggis</option>
+                        <option value="cinere">Cinere</option>
+                        <option value="cipayung">Cipayung</option>
+                        <option value="limo">Limo</option>
+                        <option value="pancoran_mas">Pancoran Mas</option>
+                        <option value="sawangan">Sawangan</option>
+                        <option value="sukmajaya">Sukmajaya</option>
+                        <option value="tapos">Tapos</option>
+                    </select>
+                </div>
+
+                <!-- Price Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-3">Rentang Harga</label>
+                    <select name="price_range" class="w-full rounded-lg border-gray-300 focus:border-[#FF5B00] focus:ring-[#FF5B00]">
+                        <option value="">Pilih Rentang Harga</option>
+                        <option value="0-15000">Dibawah Rp 15.000</option>
+                        <option value="15000-25000">Rp 15.000 - Rp 25.000</option>
+                        <option value="25000-50000">Rp 25.000 - Rp 50.000</option>
+                        <option value="50000-100000">Rp 50.000 - Rp 100.000</option>
+                        <option value="100000+">Diatas Rp 100.000</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-[#FF5B00] text-white rounded-lg hover:bg-[#e65100]">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('editPreferencesModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+        document.getElementById('editPreferencesModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function setInitialPreferences(preferences) {
+        if (!preferences) return;
+        
+        if (preferences.breakfast_category) {
+            const radio = document.querySelector(`input[name="breakfast_category"][value="${preferences.breakfast_category}"]`);
+            if (radio) radio.checked = true;
+        }
+        
+        if (preferences.district_category) {
+            document.querySelector('select[name="district_category"]').value = preferences.district_category;
+        }
+        if (preferences.price_range) {
+            document.querySelector('select[name="price_range"]').value = preferences.price_range;
+        }
+    }
+    
+    document.getElementById('editPreferencesForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        const breakfast = this.querySelector('input[name="breakfast_category"]:checked');
+        const district = this.querySelector('select[name="district_category"]').value;
+        const price = this.querySelector('select[name="price_range"]').value;
+        
+        if (!breakfast || !district || !price) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 p-4 bg-red-50 text-red-800 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = 'Mohon lengkapi semua pilihan';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+            return;
+        }
+    
+        // Show loading state
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Menyimpan...';
+    
+        try {
+            // Create form data that matches your Django view
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/edit-preferences/';
+    
+            // Add CSRF token
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = getCookie('csrftoken');
+            form.appendChild(csrfInput);
+    
+            // Add form fields
+            const breakfastInput = document.createElement('input');
+            breakfastInput.type = 'hidden';
+            breakfastInput.name = 'breakfast_category';
+            breakfastInput.value = breakfast.value;
+            form.appendChild(breakfastInput);
+    
+            const districtInput = document.createElement('input');
+            districtInput.type = 'hidden';
+            districtInput.name = 'district_category';
+            districtInput.value = district;
+            form.appendChild(districtInput);
+    
+            const priceInput = document.createElement('input');
+            priceInput.type = 'hidden';
+            priceInput.name = 'price_range';
+            priceInput.value = price;
+            form.appendChild(priceInput);
+    
+            // Submit form
+            document.body.appendChild(form);
+            form.submit();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 p-4 bg-red-50 text-red-800 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = 'Terjadi kesalahan saat menyimpan preferensi';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
+    });
+    
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+        const csrftoken = getCookie('csrftoken');
+        if (csrftoken) {
+            document.getElementById('csrfToken').value = csrftoken;
+        }
+    });
+    </script>

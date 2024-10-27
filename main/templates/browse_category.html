@@ -5,16 +5,158 @@
 <title>{{ category }} Menu - Nyarap</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Sarala:wght@400&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --navbar-height: 70px;
+    }
+
+    .browse-category-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px;
+    }
+
+    /* Breadcrumb styles */
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .breadcrumb a {
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .breadcrumb a:hover {
+        color: #F6D110;
+    }
+
+    .breadcrumb .separator {
+        color: #CBD5E0;
+    }
+
+    .breadcrumb .current {
+        color: #2D3748;
+        font-weight: 600;
+    }
+
+    /* Header styles */
+    .category-header {
+        border-bottom: 1px solid #E2E8F0;
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+
+    .header-content {
+        margin-bottom: 16px;
+    }
+
+    .category-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 50px;
+        font-weight: 700;
+        color: #2D3748;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .category-icon {
+        width: 40px;
+        height: 40px;
+        background-color: #F6D110;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .category-description {
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        color: #4A5568;
+        margin: 0;
+    }
+
+    /* Content styles */
+    .content-wrapper {
+        background-color: #ffffff;
+        width: 100%;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #718096;
+        font-family: 'Poppins', sans-serif;
+        grid-column: 1 / -1;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin: 20px auto;
+        max-width: 600px;
+    }
+
+    .no-results h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #4a5568;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        :root {
+            --navbar-height: 60px;
+        }
+
+        .category-title {
+            font-size: 24px;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .category-description {
+            font-size: 14px;
+        }
+
+        .product-grid {
+            gap: 16px;
+        }
+    }
+</style>
 {% endblock meta %}
 
 {% block content %}
 {% include 'navbar.html' %}
-
 <main class="browse-category-container">
+
+    <!-- Category Header -->
     <div class="category-header">
-        <h1 class="category-title">Menu {{ category }}</h1>
+        <div class="header-content">
+            <h1 class="category-title">
+                Menu {{ category }}
+            </h1>
+            <p class="category-description">Temukan pilihan menu {{ category }} terbaik untuk sarapanmu</p>
+        </div>
     </div>
 
+    <!-- Content -->
     <div class="content-wrapper">
         <div class="product-grid">
             {% if recommendations %}
@@ -27,99 +169,10 @@
                 </div>
             {% endif %}
         </div>
+        <div class="text-center mt-8">
+            <a href="{% url 'main:show_main' %}" class="inline-block px-6 py-3 bg-[#FF5B00] text-white rounded-lg hover:bg-[#FF7A33] transition-all">Kembali ke Home</a>
+        </div>
     </div>
 </main>
-
 {% include 'footer.html' %}
 {% endblock content %}
-
-<style>
-:root {
-    --navbar-height: 70px; /* Sesuaikan dengan tinggi navbar yang sebenarnya */
-}
-
-.browse-category-container {
-    min-height: calc(100vh - var(--navbar-height));
-    display: flex;
-    flex-direction: column;
-    padding-top: var(--navbar-height); /* Menambah padding atas sesuai tinggi navbar */
-}
-
-.category-header {
-    background-color: #f9fafb;
-    padding: 40px 20px;
-    text-align: center;
-    position: relative;
-    width: 100%;
-}
-
-.category-title {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 36px;
-    font-weight: 700;
-    color: #2d3748;
-    margin: 0 auto 16px;
-    max-width: 1200px;
-}
-
-.content-wrapper {
-    flex: 1;
-    background-color: #ffffff;
-    padding: 40px 20px 60px;
-    width: 100%;
-}
-
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.no-results {
-    text-align: center;
-    padding: 40px;
-    color: #718096;
-    font-family: 'Poppins', sans-serif;
-    grid-column: 1 / -1;
-    background: #f9fafb;
-    border-radius: 12px;
-    margin: 20px auto;
-    max-width: 600px;
-}
-
-.no-results h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #4a5568;
-}
-
-@media (max-width: 768px) {
-    :root {
-        --navbar-height: 60px; /* Menyesuaikan tinggi navbar untuk mobile */
-    }
-
-    .category-header {
-        padding: 30px 16px;
-    }
-
-    .category-title {
-        font-size: 28px;
-    }
-
-    .content-wrapper {
-        padding: 24px 16px 40px;
-    }
-
-    .product-grid {
-        gap: 16px;
-    }
-}
-
-@media (min-width: 1400px) {
-    .content-wrapper {
-        padding: 60px 20px 80px;
-    }
-}
-</style>

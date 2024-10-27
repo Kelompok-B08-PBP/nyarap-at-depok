@@ -43,7 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'main',
+    'discovery',
     'nyarap_detailer',
+    'nyarap_nanti',
+    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -141,11 +144,12 @@ else:
     # Production setting
     EXCEL_DATA_PATH = os.path.join(STATIC_ROOT, 'data', 'dataset.xlsx')
 
-print(EXCEL_DATA_PATH)
-print(os.path.exists(EXCEL_DATA_PATH)) 
+EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
+
+LOGIN_URL = 'main:login'

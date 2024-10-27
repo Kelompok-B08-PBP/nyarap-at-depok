@@ -1,0 +1,53 @@
+/* General Styling */
+.container {
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+/* Card Hover Effect */
+.grid div:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+/* Button for Collections */
+button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 2rem;
+}
+
+/* Details Button Styling */
+.btn-details {
+    background-color: #F6D110;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-details:hover {
+    background-color: #dba506;
+}
+
+/* Heart Button Styling */
+.heart-btn {
+    font-size: 1.5rem;
+    color: red;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.heart-btn:hover {
+    transform: scale(1.2);
+}
+
+/* Empty State Text */
+p {
+    color: gray;
+    font-size: 1.1rem;
+}
