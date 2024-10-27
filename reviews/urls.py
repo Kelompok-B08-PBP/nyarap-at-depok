@@ -1,6 +1,5 @@
-from django.urls import path # type: ignore
+from django.urls import path
 from reviews.views import * 
-from . import views
 
 app_name = 'reviews'
 

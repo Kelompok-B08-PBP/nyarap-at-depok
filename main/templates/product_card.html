@@ -3,7 +3,7 @@
 <!-- product_card.html -->
 <div class="product-card">
     <div class="product-image">
-        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+        <img src="{{ item.image_url }}" alt="{{ item.name }}">
         <div class="product-category">{{ item.kategori }}</div>
     </div>
     <div class="product-content">
@@ -37,6 +37,18 @@
                 <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
             {% else %}
                 <span class="details-button disabled">Lihat Detail</span>
+            <div class="price">Rp {{ item.price }}</div>
+            {% if source == 'recommendations' %}
+                <a href="{% url 'main:product_details' product_id=item.id category=item.category %}" class="details-button">
+            <div class="price">{{ item.display_price }}</div>
+            {% if source == 'recommendations' %}
+                <a href="{% url 'main:product_details_recommendation' product_id=item.id %}" class="details-button">
+                    Lihat Detail
+                </a>
+            {% elif category %}
+                <a href="{% url 'main:product_details' product_id=item.id category=category %}" class="details-button">
+                    Lihat Detail
+                </a>
             {% endif %}
         </div>
     </div>

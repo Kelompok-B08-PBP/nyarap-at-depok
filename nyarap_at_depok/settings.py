@@ -144,8 +144,7 @@ else:
     # Production setting
     EXCEL_DATA_PATH = os.path.join(STATIC_ROOT, 'data', 'dataset.xlsx')
 
-print(EXCEL_DATA_PATH)
-print(os.path.exists(EXCEL_DATA_PATH)) 
+EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -155,3 +154,4 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://valiza-nad
 
 LOGIN_URL = 'main:login'
 EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx') 
+EXCEL_DATA_PATH = os.path.join(BASE_DIR, 'static', 'data', 'dataset.xlsx')

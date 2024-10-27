@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<title>Rekomendasi Nyarap</title>
 {% include 'navbar.html' %}
 <div class="min-h-screen bg-gray-50 py-12 mt-12">
     <div class="max-w-6xl mx-auto">
@@ -69,7 +70,7 @@
             <div class="product-grid">
                 {% if recommendations %}
                     {% for item in recommendations %}
-                        {% include 'product_card.html'%}
+                        {% include 'product_card.html' with item=item source='recommendations' %}
                     {% endfor %}
                 {% else %}
                     <div class="no-results">

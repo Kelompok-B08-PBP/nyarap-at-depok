@@ -24,6 +24,10 @@ class UserPreference(models.Model):
         ('lontong', 'Lontong'),
         ('cemilan', 'Cemilan'),
         ('minuman', 'Minuman'),
+        ('mie', 'Mie'),
+        ('makanan_sehat', 'Sarapan Sehat'),
+        ('bubur', 'Bubur'),
+        ('makanan_berat', 'Sarapan Berat'),
     ]
 
     PRICE_CHOICES = [
@@ -43,3 +47,14 @@ class UserPreference(models.Model):
     preferred_breakfast_type = models.CharField(max_length=100, choices=BREAKFAST_CHOICES)
     preferred_price_range = models.CharField(max_length=50, choices=PRICE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Restaurant(models.Model):
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=50)  # Misalnya 'nasi', 'roti', dll.
+    location = models.CharField(max_length=255)  # Lokasi atau kecamatan
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    rating = models.FloatField()
+    operational_hours = models.CharField(max_length=50)  # Jam operasional
+
+    def __str__(self):
+        return self.name

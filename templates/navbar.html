@@ -1,4 +1,5 @@
 {% load static %}
+<!-- Navbar structure -->
 <nav class="bg-[#F6D110] shadow-lg fixed top-0 left-0 z-40 w-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-[80px]">
@@ -18,9 +19,12 @@
                     Community
                 </a>
                 <a href="{% url 'wishlist_page' %}" class="nav-link {% if request.path == '/wishlist/' %}active{% endif %}">
+                <a href="{% url 'wishlist_page' %}" class="nav-link">
                     Wishlist
                 </a>                
-                <a href="{% url 'reviews:show_reviews' %}" class="nav-link">Reviews</a>
+                <a href="{% url 'reviews:show_reviews' %}" class="nav-link">
+                    Reviews
+                </a>
             </div>
 
             <!-- Auth Buttons -->
@@ -36,7 +40,7 @@
 
             <!-- Mobile menu button -->
             <div class="md:hidden flex items-center">
-                <button class="mobile-menu-button">
+                <button type="button" id="mobile-menu-button" class="mobile-menu-button">
                     <svg class="w-5 h-5 text-black" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
                         <path d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -46,14 +50,23 @@
     </div>
 
     <!-- Mobile menu -->
-    <div class="mobile-menu hidden md:hidden px-4 pb-3 bg-[#F6D110]">
+    <div id="mobile-menu" class="mobile-menu hidden md:hidden px-4 pb-3 bg-[#F6D110] absolute w-full z-50">
         <a href="{% url 'main:show_main' %}" 
            class="block py-2 text-sm font-lexend {% if request.path == '/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
            Home
         </a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Community</a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Wishlist</a>
-        <a href="#" class="block py-2 text-[#737373] text-sm font-lexend hover:text-[#C3372B]">Reviews</a>
+        <a href="{% url 'discovery:show_post' %}" 
+           class="block py-2 text-sm font-lexend {% if request.path == '/discovery/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
+           Community
+        </a>
+        <a href="{% url 'wishlist_page' %}" 
+           class="block py-2 text-sm font-lexend {% if request.path == '/wishlist/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
+           Wishlist
+        </a>
+        <a href="{% url 'reviews:show_reviews' %}" 
+           class="block py-2 text-sm font-lexend {% if request.path == '/reviews/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
+           Reviews
+        </a>
         
         {% if user.is_authenticated %}
         <span class="block py-2 text-black text-sm font-lexend">Welcome, {{ user.username }}</span>
@@ -120,7 +133,8 @@
     }
 
     /* Auth buttons */
-    .auth-btn-login {
+    .auth-btn-login,
+    .auth-btn-logout {
         padding: 4px 1.5rem;
         border: 1px solid #C3372B;
         color: #C3372B;
@@ -128,7 +142,8 @@
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .auth-btn-login:hover {
+    .auth-btn-login:hover,
+    .auth-btn-logout:hover {
         background-color: #C3372B;
         color: white;
     }
@@ -145,25 +160,39 @@
         background-color: #A52D22;
     }
 
-    .auth-btn-logout {
-        padding: 4px 1.5rem;
-        border: 1px solid #C3372B;
-        color: #C3372B;
-        border-radius: 8px;
-        transition: background-color 0.3s ease, color 0.3s ease;
+    /* Mobile menu styles */
+    .mobile-menu {
+        transition: all 0.3s ease;
     }
 
-    .auth-btn-logout:hover {
-        background-color: #C3372B;
-        color: white;
+    .mobile-menu.active {
+        display: block;
     }
 </style>
 
 <!-- Script -->
 <script>
-    const btn = document.querySelector("button.mobile-menu-button");
-    const menu = document.querySelector(".mobile-menu");
-    btn.addEventListener("click", () => {
-        menu.classList.toggle("hidden");
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (menuButton && mobileMenu) {
+        menuButton.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Prevent menu from closing when clicking inside it
+        mobileMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function() {
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    }
+});
 </script>
