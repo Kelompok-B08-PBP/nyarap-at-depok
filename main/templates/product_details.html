@@ -316,6 +316,7 @@
                         {% if is_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
                     </button>
                 </form>
+
                 <div class="action-buttons">
                     {% if user.is_authenticated %}
                     <!-- Add Review Button -->
@@ -387,8 +388,61 @@
                     <p class="no-reviews-placeholder">No reviews yet.</p>
                 {% endif %}
             </div>
+            {% include 'comment.html' %}
         </div>
         
         {% include 'create_product_review.html' %}
         <script src="{% static 'js/reviewSubmission.js' %}"></script>
         {% endblock %}
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('.delete-comment').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const commentId = this.getAttribute('data-comment-id');
+                        if (confirm("Apakah Anda yakin ingin menghapus komentar ini?")) {
+                            fetch(`/delete_comment/${commentId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                }
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    document.getElementById(`comment-${commentId}`).remove();
+                                } else {
+                                    alert("Terjadi kesalahan saat menghapus komentar.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+        document.querySelectorAll('.edit-comment').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-comment-id');
+                const commentTextElement = document.querySelector(`#comment-${commentId} .review-text`);
+                const originalText = commentTextElement.textContent;
+                
+                const newText = prompt("Edit komentar:", originalText);
+                if (newText) {
+                    fetch(`/edit_comment/${commentId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ 'content': newText }),
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            commentTextElement.textContent = newText;
+                        } else {
+                            alert("Terjadi kesalahan saat mengedit komentar.");
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

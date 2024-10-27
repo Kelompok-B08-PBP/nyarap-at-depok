@@ -12,12 +12,13 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .forms import PreferencesForm
-from .models import UserPreference
+from .forms import PreferencesForm, CommentForm
+from .models import UserPreference, Comment
 import pandas as pd
 from django.conf import settings
 import hashlib
 from nyarap_nanti.models import Wishlist
+from django.views.decorators.http import require_POST
 
 
 def load_recommendations_from_excel():
@@ -722,16 +723,19 @@ def product_details(request, category, product_id):
                 ).exists()
         except Exception as e:
             pass
-            
+        comments = Comment.objects.filter(product_identifier=product_id)
         context = {
             'product': product,
             'category': category,
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
             'reviews': reviews,
+            'comments': comments,
             'show_reviews': True,
+            'user': request.user,
             'is_in_wishlist': is_in_wishlist,
-            'return_url': request.GET.get('return_url', 'main:browse_category')  # Add return URL
+            'product_id': product_id,
+            'return_url': request.GET.get('return_url', 'main:browse_category')
         }
         
         # Check if request is coming from nyarap_nanti
@@ -957,3 +961,36 @@ def load_data_to_restaurant():
                 'operational_hours': row['Jam Operasional'].strip(),
             }
         )
+
+def add_comment(request, product_id):
+    if request.method == "POST":
+        content = request.POST.get('content')
+        user = request.user
+        
+        # Buat komentar baru
+        comment = Comment.objects.create(user=user, content=content, product_identifier=product_id)
+
+        return JsonResponse({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'content': comment.content,
+                'user': {
+                    'username': user.username
+                }
+            }
+        })
+    return JsonResponse({'success': False}, status=400)
+
+@require_POST
+def edit_comment(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    comment.content = request.POST.get('content')
+    comment.save()
+    return JsonResponse({'message': 'Comment edited successfully!'})
+
+@require_POST
+def delete_comment(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    comment.delete()
+    return JsonResponse({'message': 'Comment deleted successfully!'})
