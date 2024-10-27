@@ -32,6 +32,11 @@
             </div>
         </div>
         <div class="product-footer">
+            <div class="price">Rp {{ item.price}}</div>
+            {% if raw_category and item.id %}
+                <a href="{% url 'main:product_details' category=raw_category product_id=item.id %}" class="details-button">Lihat Detail</a>
+            {% else %}
+                <span class="details-button disabled">Lihat Detail</span>
             <div class="price">Rp {{ item.price }}</div>
             {% if source == 'recommendations' %}
                 <a href="{% url 'main:product_details' product_id=item.id category=item.category %}" class="details-button">

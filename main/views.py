@@ -170,12 +170,12 @@ def show_main(request):
         except Exception as e:
             user_preferences = None
 
-
     context = {
         'name': request.user.username if request.user.is_authenticated else 'Guest',
         'user_preferences': user_preferences,
         'recommendations': filtered_recommendations,
         'source': 'main',
+
     }
 
     return render(request, "main.html", context)
@@ -538,6 +538,20 @@ def recommendation_list(request):
 
 @login_required
 def edit_preferences(request):
+    # Ambil preferensi pengguna yang sudah login
+    user_preferences = request.user.preferences
+    
+    # Cek apakah metode yang digunakan adalah POST (form disubmit)
+    if request.method == 'POST':
+        form = PreferencesForm(request.POST, instance=request.user)
+        if form.is_valid():
+            # Simpan perubahan preferensi
+            form.save()
+            return redirect('main:home')  # Redirect ke halaman home setelah preferensi disimpan
+    else:
+        # Inisialisasi form dengan preferensi user saat ini
+        form = PreferencesForm(instance=request.user)
+    
     if request.method == 'POST':
         # Log request data for debugging
         breakfast_category = request.POST.get('breakfast_category')
