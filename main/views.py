@@ -1,8 +1,8 @@
 import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from main.forms import PreferencesForm
 from main.models import UserPreference
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
@@ -10,12 +10,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .forms import PreferencesForm  # Updated import name
-from .models import UserPreference
+from .forms import PreferencesForm, CommentForm  # Updated import name
+from .models import UserPreference, Comment
 import pandas as pd
 from django.conf import settings
 import hashlib
-
+from django.views.decorators.http import require_POST
 
 def load_recommendations_from_excel():
     try:
@@ -99,16 +99,11 @@ def load_recommendations_from_excel():
 
 def show_main(request):
     user_preferences = None
-
     filtered_recommendations = []
-
-    recommendations = []
-    preference_entries = UserPreference.objects.all()  # Dari aline/nyarap_nanti
     
     if request.user.is_authenticated:
         try:
             user_preferences = UserPreference.objects.get(user=request.user)
-
             breakfast_type = user_preferences.preferred_breakfast_type.lower()
             location = user_preferences.preferred_location.strip().title()
             
@@ -180,16 +175,18 @@ def show_main(request):
                     
                 print(f"Final filtered recommendations count: {len(filtered_recommendations)}")
                 
-
-            # Only load recommendations if user has preferences
-            recommendations = load_recommendations_from_excel()  # Import dari dev
-
         except UserPreference.DoesNotExist:
             print("No user preferences found")
             user_preferences = None
         except Exception as e:
             print(f"Error in show_main: {str(e)}")
             user_preferences = None
+
+    context = {
+        'name': request.user.username if request.user.is_authenticated else 'Guest',
+        'user_preferences': user_preferences,
+        'recommendations': filtered_recommendations,
+    }
 
     return render(request, "main.html", context)
 
@@ -532,16 +529,20 @@ def recommendation_list(request):
 
 @login_required
 def edit_preferences(request):
+    # Ambil preferensi pengguna yang sudah login
     user_preferences = request.user.preferences
-
+    
+    # Cek apakah metode yang digunakan adalah POST (form disubmit)
     if request.method == 'POST':
         form = PreferencesForm(request.POST, instance=request.user)
         if form.is_valid():
+            # Simpan perubahan preferensi
             form.save()
-            return redirect('main:home')
+            return redirect('main:home')  # Redirect ke halaman home setelah preferensi disimpan
     else:
+        # Inisialisasi form dengan preferensi user saat ini
         form = PreferencesForm(instance=request.user)
-
+    
     context = {
         'form': form,
         'user_preferences': user_preferences,
@@ -758,21 +759,23 @@ def browse_category(request, category):
         messages.error(request, 'Terjadi kesalahan saat memuat kategori.')
         return redirect('main:show_main')
 
+@login_required
 def product_details(request, category, product_id):
-    """
-    View function for individual product details
-    """
     try:
-        # Get product details using the product_id
-        product = get_product_by_id(int(product_id))
+        product = get_product_by_id(product_id)  # Ganti dengan fungsi Anda untuk mendapatkan produk
         
         if not product:
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
         
+        # Ambil komentar untuk produk ini
+        comments = Comment.objects.filter(product_identifier=product_id)
+        
         context = {
             'product': product,
             'category': category,
+            'comments': comments,
+            'product_id': product_id,  # Tambahkan product_id ke dalam konteks
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
         }
@@ -787,6 +790,35 @@ def product_details(request, category, product_id):
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
 
-@login_required
-def wishlist_view(request):
-    return render(request, 'wishlist.html')
+def add_comment(request, product_id):
+    if request.method == "POST":
+        content = request.POST.get('content')
+        user = request.user
+        
+        # Buat komentar baru
+        comment = Comment.objects.create(user=user, content=content, product_identifier=product_id)
+
+        return JsonResponse({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'content': comment.content,
+                'user': {
+                    'username': user.username
+                }
+            }
+        })
+    return JsonResponse({'success': False}, status=400)
+
+@require_POST
+def edit_comment(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    comment.content = request.POST.get('content')
+    comment.save()
+    return JsonResponse({'message': 'Comment edited successfully!'})
+
+@require_POST
+def delete_comment(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    comment.delete()
+    return JsonResponse({'message': 'Comment deleted successfully!'})
