@@ -740,8 +740,7 @@ def product_details(request, category, product_id):
         
         # Check if request is coming from nyarap_nanti
         if 'nyarap_nanti' in request.GET.get('source', ''):
-            return redirect('nyarap_nanti:product_details', 
-                          category=category, 
+            return redirect('nyarap_nanti:product_details', category=category, 
                           product_id=product_id)
         
         return render(request, 'product_details.html', context)
