@@ -22,6 +22,7 @@ from main import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
+    path('discovery/', include('discovery.urls')),
     path('detailer/', include('nyarap_detailer.urls')),
     path('wishlist/', include('nyarap_nanti.urls', namespace='nyarap_nanti')),
     path('review/', include('reviews.urls')),

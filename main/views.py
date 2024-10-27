@@ -20,12 +20,18 @@ from django.conf import settings
 import hashlib
 
 logger = logging.getLogger(__name__)
-
 def load_recommendations_from_excel():
     try:
         excel_path = settings.EXCEL_DATA_PATH
         df = pd.read_excel(excel_path)
         
+        kategori_mapping = {
+            'Makanan Sehat': 'makanan_sehat',
+            'Makanan Berat': 'makanan_berat'
+        }
+        
+        # Standardisasi kategori sebelum lowercase dan strip
+        df['Kategori'] = df['Kategori'].replace(kategori_mapping, regex=False)
         df['Kategori'] = df['Kategori'].str.lower().str.strip()
         df['Kecamatan'] = df['Kecamatan'].strip() if isinstance(df['Kecamatan'], str) else df['Kecamatan']
         
@@ -60,13 +66,21 @@ def load_recommendations_from_excel():
                 except (ValueError, AttributeError):
                     rating = 0.0
                 
+                # Handle image URL
+                image_url = row.get('Link Foto', '')
+                if pd.isna(image_url) or not image_url.strip():
+                    image_url = '/api/placeholder/400/320'
+
                 recommendations[kategori][kecamatan].append({
                     'name': str(row['Nama Produk']).strip(),
                     'restaurant': str(row['nama_restoran']).strip(),
                     'rating': rating,
                     'operational_hours': str(row['Jam Operasional']).strip(),
                     'location': str(row['Lokasi']),
-                    'price': clean_price
+
+                    'price': clean_price,
+                    'image_url': image_url
+
                 })
                 
             except KeyError as e:
@@ -140,7 +154,7 @@ def show_main(request):
                                         if price_value == 0 or price_str.lower() == 'nan':
                                             new_item['display_price'] = "Harga belum tersedia"
                                         else:
-                                            new_item['display_price'] = f"Rp {price_value:,.0f}"
+                                            new_item['display_price'] = f"Rp {price_value}"
                                         filtered_recommendations.append(new_item)
                                 except ValueError:
                                     # If price conversion fails, include item with "Harga belum tersedia"
@@ -439,6 +453,10 @@ def recommendation_list(request):
         'mie': 'Mie',
         'telur': 'Telur',
         'bubur': 'Bubur'
+        'makanan_sehat': 'Sarapan Sehat',
+        'bubur': 'Bubur',
+        'makanan_berat': 'Sarapan Berat',
+
     }
     location_display = dict(UserPreference.KECAMATAN_CHOICES)
     price_display = dict(UserPreference.PRICE_CHOICES)
@@ -465,6 +483,7 @@ def recommendation_list(request):
     else:
         recommended_products = get_recommendations(breakfast_type, location, price_range)
 
+
     # Add ID to each recommended product
     recommendations_with_id = []
     for index, product in enumerate(recommended_products, start=1):
@@ -481,6 +500,25 @@ def recommendation_list(request):
                 'image_url': getattr(product, 'image_url', ''),
             }
         product_dict['id'] = index
+
+    # Add ID to each recommended product - Gunakan current_id untuk konsistensi
+    recommendations_with_id = []
+    current_id = 1  # Mulai dari 1
+    
+    for product in recommended_products:
+        product_dict = product if isinstance(product, dict) else {
+            'name': getattr(product, 'name', ''),
+            'price': getattr(product, 'price', ''),
+            'restaurant': getattr(product, 'restaurant', ''),
+            'rating': getattr(product, 'rating', ''),
+            'kategori': getattr(product, 'kategori', ''),
+            'kecamatan': getattr(product, 'kecamatan', ''),
+            'operational_hours': getattr(product, 'operational_hours', ''),
+            'image_url': getattr(product, 'image_url', ''),
+        }
+        product_dict['id'] = current_id
+        current_id += 1  # Increment ID
+
         recommendations_with_id.append(product_dict)
 
     context = {
@@ -496,6 +534,7 @@ def recommendation_list(request):
     }
     
     return render(request, 'recommendation_list.html', context)
+
 
 @login_required
 def edit_preferences(request):
@@ -546,8 +585,9 @@ def edit_preferences(request):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'telur': 'Telur',
-            'bubur': 'Bubur'
+            'makanan_sehat': 'Sarapan Sehat',
+            'bubur': 'Bubur',
+            'makanan_berat': 'Sarapan Berat',
         }
 
         context.update({
@@ -568,79 +608,10 @@ def edit_preferences(request):
     
     return render(request, 'edit_preference_ajax.html', context)
 
-def get_product_by_id(product_id):
-    """
-    Get product details by ID from the recommendations data
-    """
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        
-        # Search through all categories and locations
-        for category, locations in all_recommendations.items():
-            for location, items in locations.items():
-                for item in items:
-                    # Add an ID to each item based on its position
-                    item['id'] = hash(f"{item['name']}_{item['restaurant']}_{location}")
-                    
-                    if item['id'] == product_id:
-                        # Add additional fields needed for display
-                        item['category'] = category
-                        item['location'] = location
-                        
-                        # Format price if needed
-                        if 'price' in item:
-                            try:
-                                price = float(str(item['price']).replace(',', ''))
-                                item['display_price'] = f"Rp {price:,.0f}"
-                            except (ValueError, TypeError):
-                                item['display_price'] = "Harga belum tersedia"
-                        
-                        return item
-                    
-        return None
-        
-    except Exception as e:
-        return None
-
-def get_recommendations_by_category(category):
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        category_recommendations = []
-        
-        if category.lower() in all_recommendations:
-            # Go through all locations for this category
-            for location, items in all_recommendations[category.lower()].items():
-                for item in items:
-                    new_item = item.copy()
-                    # Generate a unique ID for each item
-                    new_item['id'] = hash(f"{item['name']}_{item['restaurant']}_{location}")
-                    
-                    # Handle price display
-                    price_str = item.get('price', '0')
-                    if price_str == '0' or not str(price_str).strip():
-                        new_item['display_price'] = "Harga belum tersedia"
-                    else:
-                        try:
-                            price_value = float(str(price_str).replace(',', ''))
-                            new_item['display_price'] = f"Rp {price_value:,.0f}"
-                        except (ValueError, TypeError):
-                            new_item['display_price'] = "Harga belum tersedia"
-                    
-                    # Add location information
-                    new_item['kecamatan'] = location
-                    category_recommendations.append(new_item)
-    
-        return category_recommendations
-        
-    except Exception as e:
-        return []
-
 def generate_product_id(name, restaurant, location):
-    # Create a string combining all the identifying information
+
     identifier = f"{name}_{restaurant}_{location}"
-    # Create a hash of the identifier
     hash_object = hashlib.md5(identifier.encode())
-    # Convert the first 8 characters of the hash to a positive integer
     return int(hash_object.hexdigest()[:8], 16)
 
 def get_product_by_id(product_id):
@@ -717,7 +688,7 @@ def browse_category(request, category):
 
     try:
         # Validate category
-        valid_categories = ['nasi', 'roti', 'lontong', 'cemilan', 'minuman', 'mie', 'telur', 'bubur']
+        valid_categories = ['nasi', 'roti', 'lontong', 'cemilan', 'minuman', 'mie', 'makanan_sehat', 'bubur', 'makanan_berat']
         if category.lower() not in valid_categories:
             messages.error(request, 'Kategori tidak valid.')
             return redirect('main:show_main')
@@ -733,8 +704,9 @@ def browse_category(request, category):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'telur': 'Telur',
-            'bubur': 'Bubur'
+            'makanan_sehat': 'Sarapan Sehat',
+            'bubur': 'Bubur',
+            'makanan_berat': 'Sarapan Berat',
         }
         
         context = {
@@ -759,125 +731,26 @@ def product_details(request, category, product_id):
         if not product:
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
-        
-        context = {
-            'product': product,
-            'category': category,
-            'is_authenticated': request.user.is_authenticated,
-            'name': request.user.username if request.user.is_authenticated else None,
-        }
-        return render(request, 'product_details.html', context)
-    except ValueError:
-        messages.error(request, 'ID produk tidak valid.')
-        return redirect('main:browse_category', category=category)
-    except Exception as e:
-        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
-        return redirect('main:browse_category', category=category)
-
-def get_product_by_id(product_id):
-    logger.info(f"Mencari produk dengan ID: {product_id}")
-    try:
-        all_recommendations = load_recommendations_from_excel()
-        found_product = None
-        current_id = 1
-
-        for category, locations in all_recommendations.items():
-            for location, items in locations.items():
-                for item in items:
-                    hash_id = generate_product_id(item['name'], item['restaurant'], location)
-                    logger.info(f"Memeriksa produk: {item['name']} dengan hash ID: {hash_id}")
-                    
-                    if product_id == current_id or product_id == hash_id:
-                        found_product = item.copy()
-                        found_product.update({
-                            'id': current_id,
-                            'category': category,
-                            'kecamatan': location,
-                            'name': item['name'],
-                            'restaurant': item['restaurant'],
-                            'rating': float(str(item.get('rating', '0')).replace(',', '.')),
-                            'operational_hours': item.get('operational_hours', ''),
-                            'location': item.get('location', ''),
-                        })
-                        
-                        logger.info(f"Produk ditemukan: {found_product}")
-                        return found_product
-                    current_id += 1
-
-        logger.warning(f"Produk dengan ID {product_id} tidak ditemukan.")
-        return None
-        
-    except Exception as e:
-        logger.error(f"Kesalahan saat mencari produk dengan ID {product_id}: {e}")
-        return None
-
-
-def product_details_recommendation(request, product_id):
-    try:
-        # Convert product_id to int and get product
-        product = get_product_by_id(int(product_id))
-        
-        if not product:
-            messages.error(request, 'Produk tidak ditemukan.')
-            return redirect('main:recommendation_list')
-            
-        context = {
-            'product': product,
-            'is_authenticated': request.user.is_authenticated,
-            'name': request.user.username if request.user.is_authenticated else None,
-            'source': 'recommendations',
-        }
-        
-        return render(request, 'product_details.html', context)
-    except ValueError:
-        messages.error(request, 'ID produk tidak valid.')
-        return redirect('main:recommendation_list')
-    except Exception as e:
-        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
-        return redirect('main:recommendation_list')
-    
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def delete_preferences(request):
-    if request.user.is_authenticated:
+        product['id'] = product_id 
         try:
-
-            UserPreference.objects.filter(user=request.user).delete()
-            return JsonResponse({'status': 'success'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=403)
-
-def product_details(request, category, product_id):
-    logger.info(f"Mengakses detail produk dengan ID: {product_id} dan kategori: {category}")
-
-    try:
-        # Dapatkan detail produk menggunakan product_id
-        product = get_product_by_id(int(product_id))
-        if not product:
-            logger.warning(f"Produk dengan ID {product_id} tidak ditemukan.")
-            messages.error(request, 'Produk tidak ditemukan.')
-            return redirect('main:browse_category', category=category)
-
+            from reviews.models import Review
+            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
+        except ImportError:
+            reviews = []
+        
         context = {
             'product': product,
             'category': category,
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
+            'reviews': reviews,
+            'show_reviews': False  # Default tidak menampilkan review section
         }
-        logger.info(f"Produk ditemukan: {product['name']}")
         return render(request, 'product_details.html', context)
-
-    except ValueError as e:
-        logger.error(f"ID produk tidak valid: {product_id}. Error: {e}")
+    except ValueError:
         messages.error(request, 'ID produk tidak valid.')
         return redirect('main:browse_category', category=category)
-
     except Exception as e:
-        logger.error(f"Terjadi kesalahan saat memuat detail produk dengan ID {product_id}: {e}")
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
 
@@ -896,3 +769,103 @@ def load_data_to_restaurant():
                 'operational_hours': row['Jam Operasional'].strip(),
             }
         )
+        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
+        return redirect('main:browse_category', category=category)
+
+def product_details_recommendation(request, product_id):
+    try:
+        # Get user preferences
+        if request.user.is_authenticated:
+            try:
+                preference = UserPreference.objects.get(user=request.user)
+                breakfast_type = preference.preferred_breakfast_type
+                location = preference.preferred_location
+                price_range = preference.preferred_price_range
+            except UserPreference.DoesNotExist:
+                messages.error(request, 'Preferensi tidak ditemukan.')
+                return redirect('main:recommendation_list')
+        else:
+            breakfast_type = request.session.get('preferred_breakfast_type')
+            location = request.session.get('preferred_location')
+            price_range = request.session.get('preferred_price_range')
+            if not all([breakfast_type, location, price_range]):
+                messages.error(request, 'Preferensi tidak ditemukan.')
+                return redirect('main:recommendation_list')
+
+        # Get recommendations based on preferences
+        if breakfast_type == 'masih_bingung':
+            recommended_products = get_recommendations_for_undecided(location, price_range)
+        else:
+            recommended_products = get_recommendations(breakfast_type, location, price_range)
+
+        # Find the product with matching ID
+        try:
+            product_index = int(product_id) - 1
+            if 0 <= product_index < len(recommended_products):
+                product = recommended_products[product_index]
+                
+                # Format the product data
+                formatted_product = {
+                    'id': int(product_id),
+                    'name': product.get('name', ''),
+                    'restaurant': product.get('restaurant', ''),
+                    'rating': product.get('rating', 0.0),
+                    'operational_hours': product.get('operational_hours', ''),
+                    'location': product.get('location', ''),
+                    'display_price': product.get('display_price', 'Harga belum tersedia'),
+                    'image_url': product.get('image_url', '/api/placeholder/800/400'),
+                    'kecamatan': product.get('kecamatan', ''),
+                    'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title()
+                }
+
+                context = {
+                    'product': formatted_product,
+                    'is_authenticated': request.user.is_authenticated,
+                    'name': request.user.username if request.user.is_authenticated else None,
+                    'source': 'recommendations'
+                }
+                
+                return render(request, 'product_details.html', context)
+            else:
+                raise ValueError('Product index out of range')
+        except (ValueError, IndexError):
+            messages.error(request, 'Produk tidak ditemukan.')
+            return redirect('main:recommendation_list')
+            
+    except Exception as e:
+        messages.error(request, f'Terjadi kesalahan saat memuat detail produk: {str(e)}')
+        return redirect('main:recommendation_list')
+    
+@login_required
+@csrf_exempt
+def delete_preferences(request):
+    if request.method == 'POST':
+        try:
+            # Get and delete the user's preferences
+            UserPreference.objects.filter(user=request.user).delete()
+            
+            # For AJAX requests
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Preferences deleted successfully'
+                })
+            
+            # For regular form submissions
+            return redirect('main:show_main')  # or whatever your home URL name is
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                })
+            return redirect('main:show_main')
+    
+    # If not POST request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid request method'
+        })
+    return redirect('main:show_main')

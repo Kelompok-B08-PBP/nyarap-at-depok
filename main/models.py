@@ -24,6 +24,10 @@ class UserPreference(models.Model):
         ('lontong', 'Lontong'),
         ('cemilan', 'Cemilan'),
         ('minuman', 'Minuman'),
+        ('mie', 'Mie'),
+        ('makanan_sehat', 'Sarapan Sehat'),
+        ('bubur', 'Bubur'),
+        ('makanan_berat', 'Sarapan Berat'),
     ]
 
     PRICE_CHOICES = [

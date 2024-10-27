@@ -106,4 +106,3 @@ def remove_from_wishlist(request, product_id):
     request.session['wishlist'] = wishlist  # Simpan perubahan ke sesi
     messages.success(request, "Produk berhasil dihapus dari wishlist.")
     return redirect('nyarap_nanti:wishlist_page')
-

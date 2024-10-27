@@ -1,0 +1,167 @@
+{% block content %}
+<div id="deletePreferencesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50" tabindex="-1" role="dialog">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4 relative"> <!-- Added relative positioning -->
+        <!-- Close (X) button -->
+        <button onclick="closeDeleteModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Hapus Preferensi</h3>
+            <p class="text-gray-500 mb-6">Apakah Anda yakin ingin menghapus preferensi Anda? Tindakan ini tidak dapat dibatalkan.</p>
+            
+            <div class="flex justify-center gap-4">
+                <button type="button" onclick="closeDeleteModal()" 
+                        class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="button" id="confirmDeleteBtn"
+                        class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors">
+                    Hapus
+                </button>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="loadingIndicator" class="hidden mt-4">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto"></div>
+                <p class="text-sm text-gray-500 mt-2">Menghapus preferensi...</p>
+            </div>
+
+            <!-- Success message -->
+            <div id="successMessage" class="hidden mt-4 text-green-600">
+                <svg class="h-6 w-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <p class="text-sm mt-2">Preferensi berhasil dihapus!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal() {
+        const modal = document.getElementById('deletePreferencesModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        // Reset state
+        document.getElementById('loadingIndicator').classList.add('hidden');
+        document.getElementById('successMessage').classList.add('hidden');
+        document.getElementById('confirmDeleteBtn').disabled = false;
+    }
+
+    function refreshMainContent() {
+        window.location.reload();
+    }
+
+    function closeDeleteModal(shouldRefresh = true) {
+        const modal = document.getElementById('deletePreferencesModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        if (shouldRefresh) {
+            refreshMainContent();
+        }
+    }
+
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function updateUIAfterDelete() {
+        // Menghilangkan rekomendasi sarapan dengan animasi fade out
+        const recommendation = document.querySelector('.recommendation-section');
+        if (recommendation) {
+            recommendation.style.transition = 'opacity 0.3s ease-out';
+            recommendation.style.opacity = '0';
+            setTimeout(() => recommendation.remove(), 300);
+        }
+
+        // Menampilkan form pencarian dengan animasi fade in
+        const searchSection = document.querySelector('.search-section');
+        if (searchSection) {
+            searchSection.style.display = 'block';
+            searchSection.style.opacity = '0';
+            searchSection.style.transition = 'opacity 0.3s ease-in';
+            setTimeout(() => searchSection.style.opacity = '1', 50);
+        }
+
+        // Menghapus elemen terkait preferensi dengan animasi
+        const preferenceElements = document.querySelectorAll('.preference-related');
+        preferenceElements.forEach(element => {
+            element.style.transition = 'opacity 0.3s ease-out';
+            element.style.opacity = '0';
+            setTimeout(() => element.remove(), 300);
+        });
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        // Disable button and show loading
+        this.disabled = true;
+        document.getElementById('loadingIndicator').classList.remove('hidden');
+        
+        try {
+            const response = await fetch('/delete-preferences/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                // Hide loading and show success message
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+                
+                // Update UI and refresh after success
+                setTimeout(() => {
+                    updateUIAfterDelete();
+                    setTimeout(() => closeDeleteModal(true), 1000); // Close modal and refresh
+                }, 500);
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Re-enable button and hide loading on error
+            this.disabled = false;
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            // Optionally show error message
+            alert('Terjadi kesalahan saat menghapus preferensi. Silakan coba lagi.');
+        }
+    });
+
+    document.getElementById('deletePreferencesModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            closeDeleteModal(true); // Close and refresh when clicking outside
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDeleteModal(true); // Close and refresh when pressing Escape
+        }
+    });
+</script>
+{% endblock %}

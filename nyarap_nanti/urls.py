@@ -10,6 +10,5 @@ urlpatterns = [
     path('collection/remove/<int:collection_id>/', views.remove_collection, name='remove_collection'),
     path('edit/<int:collection_id>/', views.edit_collection, name='edit_collection'),
     path('wishlist/add/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist_by_id'),
-    path('wishlist/remove/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),  # Ganti `restaurant_id` ke `product_id`
-    
+    path('wishlist/remove/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),  
 ]

@@ -1,118 +1,57 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block content %}
-{% include 'navbar.html' %}
-<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
-
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8 bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold mb-4">Add New Review</h2>
+<div id="crudModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-5/6 sm:w-3/4 md:w-1/2">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Add New Review</h2>
         
-        <form id="productForm" action="{% url 'reviews:add_product_review_ajax' %}" method="post" class="space-y-4">
+        <form id="reviewForm">
             {% csrf_token %}
-            <div class="form-group">
-                <label for="restaurant_name" class="block text-gray-700 font-medium mb-2">Restaurant Name</label>
-                <input type="text" id="restaurant_name" name="restaurant_name" 
-                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       required>
+
+            <!-- Restaurant Name -->
+            <div>
+                <label for="restaurant_name" class="block text-sm font-medium text-gray-700 mb-2">Restaurant Name</label>
+                <input type="text" name="restaurant_name" id="restaurant_name" required
+                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                    placeholder="Enter restaurant name">
             </div>
-            <div class="form-group">
-                <label for="food_name" class="block text-gray-700 font-medium mb-2">Food Name</label>
-                <input type="text" id="food_name" name="food_name" 
-                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+
+            <!-- Food Name -->
+            <div>
+                <label for="food_name" class="block text-sm font-medium text-gray-700 mb-2">Food Name</label>
+                <input type="text" name="food_name" id="food_name" required
+                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                    placeholder="What did you eat?">
             </div>
-            <div class="form-group">
-                <label class="block text-gray-700 font-medium mb-2">Rating</label>
-                <div class="flex space-x-2" id="starRating">
+
+            <!-- Rating -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Rating</label>
+                <div id="starRating" class="flex space-x-1 text-3xl">
                     {% for i in "12345" %}
-                    <span class="star text-3xl cursor-pointer" data-rating="{{ forloop.counter }}">★</span>
+                    <span class="star cursor-pointer text-gray-300" data-value="{{ forloop.counter }}">★</span>
                     {% endfor %}
                 </div>
-                <input type="hidden" id="rating" name="rating" value="0" required>
+                <input type="hidden" name="rating" id="rating" required>
             </div>
-            <div class="form-group">
-                <label for="review" class="block text-gray-700 font-medium mb-2">Review</label>
-                <textarea id="review" name="review" rows="4" 
-                          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required></textarea>
+
+            <!-- Review -->
+            <div>
+                <label for="review" class="block text-sm font-medium text-gray-700 mb-2">Review</label>
+                <textarea name="review" id="review" required rows="4"
+                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                    placeholder="Share your thoughts about the food and experience..."></textarea>
             </div>
-            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                Post Review
-            </button>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" id="cancelReview"
+                    class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="saveReview"
+                    class="px-6 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    Save Review
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
-<script>
-document.getElementById('productForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    // AJAX function untuk submit review form
-    async function addProductReview() {
-        const form = document.getElementById("reviewForm");
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch("{% url 'reviews:add_product_review_ajax' %}", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: formData,
-            });
-
-            if (response.status === 201) {
-                const restaurantName = formData.get('restaurant_name');
-                const foodName = formData.get('food_name');
-                const rating = formData.get('rating');
-                const reviewText = formData.get('review');
-                const currentDate = new Date().toLocaleString("en-US", {
-                    year: 'numeric', month: 'short', day: 'numeric', 
-                    hour: 'numeric', minute: 'numeric', hour12: true
-                });
-
-                // Generate HTML untuk star rating
-                let starHtml = '';
-                for (let i = 1; i <= 5; i++) {
-                    starHtml += `<span class="star ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}">★</span>`;
-                }
-
-                // Create HTML untuk new review card
-                const reviewHtml = `
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-xl font-bold mb-2">${restaurantName}</h3>
-                        <p class="text-gray-600 mb-2">${foodName}</p>
-                        <div class="flex space-x-1 mb-2">${starHtml}</div>
-                        <p class="text-gray-700 mb-2">${reviewText}</p>
-                        <p class="text-sm text-gray-500">Added on ${currentDate}</p>
-
-                        <!-- Edit and Delete Buttons -->
-                        <div class="flex space-x-2 mt-4">
-                            <button class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
-                                Edit
-                            </button>
-                            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                const reviewsContainer = document.getElementById("reviewsContainer");
-                reviewsContainer.insertAdjacentHTML('afterbegin', reviewHtml);
-
-                form.reset();
-                hideModal();
-            } else {
-                console.error("Failed to create review");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    }
-
-});
-</script>
-
-{% endblock %}
