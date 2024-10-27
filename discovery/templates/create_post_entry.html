@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>New Post</title>
+<style>
+    /* Gaya umum */
+    body {
+        font-family: 'Sarala', sans-serif;
+    }
+
+    /* Container untuk form */
+    .container {
+        width: 100px; /* Mengatur lebar maksimum kontainer */
+    }
+
+    /* Gaya untuk form */
+    .form-style {
+        box-shadow: 4px 4px 10px rgba(0.1, 0, 0.1, 0); /* Bayangan lebih besar di kanan dan atas */
+        border-radius: 10px; /* Membuat sudut kotak lebih bulat */
+    }
+
+    /* Gaya untuk tombol Cancel */
+    .cancel-button {
+        background-color: #fff; /* Warna tombol Cancel */
+        border: 0.5px solid  #C3372B;
+        color: #C3372B; /* Warna teks tombol Cancel */
+        font-weight: 600;
+        padding: 0.5rem 1.5rem; /* Ukuran tombol */
+        border-radius: 9999px; /* Sudut tombol lebih bulat */
+        transition: background-color 0.3s ease; /* Efek transisi */
+    }
+
+    /* Efek hover pada tombol Cancel */
+    .cancel-button:hover {
+        background-color: #C3372B; 
+        color : #ffff
+    }
+
+    /* Gaya untuk tombol Post */
+    .post-button {
+        background-color: #ffff; /* Warna tombol Post */
+        border: 0.5px solid black;
+        color: black; /* Warna teks tombol Post */
+        font-weight: 600;
+        padding: 0.5rem 1.5rem; /* Ukuran tombol */
+        border-radius: 9999px; /* Sudut tombol lebih bulat */
+        transition: background-color 0.3s ease; /* Efek transisi */
+    }
+
+    /* Efek hover pada tombol Post */
+    .post-button:hover {
+        background-color: #000; 
+        color: #ffff
+    }
+</style>
+{% endblock meta %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="flex flex-col min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-8 mt-16"> 
+        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl mt-8">
+            <div class="p-8">
+                <h2 class="text-2xl font-bold mb-4">Create New Post</h2>
+                <form method="POST" action="{% url 'discovery:create_post_entry' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Caption Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.caption.id_for_label }}" class="block text-sm font-medium text-gray-700">Caption</label>
+                        {{ form.caption }}
+                        {% if form.caption.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.caption.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Location Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700">Location</label>
+                        {{ form.location }}
+                        {% if form.location.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.location.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Photo URL Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.photo_url.id_for_label }}" class="block text-sm font-medium text-gray-700">Photo URL</label>
+                        {{ form.photo_url }}
+                        {% if form.photo_url.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.photo_url.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button type="button" onclick="goBack()" class="cancel-button">
+                            Cancel
+                        </button>
+                        <button type="submit" class="post-button">
+                            Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+{% endblock %}
