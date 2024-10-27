@@ -316,31 +316,79 @@
                         {% if is_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
                     </button>
                 </form>
+                <div class="action-buttons">
+                    {% if user.is_authenticated %}
+                    <!-- Add Review Button -->
+                    <div class="flex justify-center mb-8">
+                        <button id="addReviewBtn" 
+                            data-add-url="{% url 'reviews:add_product_review_ajax' %}"
+                            class="group relative inline-flex items-center px-8 py-3 overflow-hidden rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700">
+                            <span class="absolute right-0 translate-x-full group-hover:-translate-x-4 transition-transform">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </span>
+                            <span class="pr-4 group-hover:pr-8 transition-all">Add Review</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <a href="{% url 'main:login' %}" class="btn btn-review">
+                        Login to Write Review
+                    </a>
+                {% endif %}
+            </div>
 
-                <div class="reviews-section">
-                    <h2 class="section-title">Customer Reviews</h2>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer">John Doe</div>
-                            <div class="review-date">2 days ago</div>
+            <div class="reviews-section">
+                <h2 class="section-title">Customer Reviews</h2>
+                <div id="reviewsContainer" class="review-list">
+                    {% for review in reviews %}
+                    <div class="review-card bg-white rounded-lg shadow-md p-6 mb-4">
+                        <!-- Review Header -->
+                        <div class="review-header flex justify-between items-center mb-2">
+                            <div class="reviewer text-xl font-semibold">{{ review.restaurant_name }}</div>
+                            <div class="review-date text-gray-500 text-sm">{{ review.date_added }}</div>
                         </div>
-                        <div class="review-text">
-                            Amazing food and great service! The portions are generous and the flavors are authentic. Highly recommended!
+
+                        <!-- Food Name -->
+                        <p class="text-gray-600 mb-2 font-medium">Food: {{ review.food_name }}</p>
+
+                        <!-- Star Rating -->
+                        <div class="review-rating flex space-x-1 mb-2">
+                            {% for i in "12345" %}
+                                <span class="star {% if i|add:0 <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">★</span>
+                            {% endfor %}
                         </div>
+
+                        <!-- Review Text -->
+                        <div class="review-text text-gray-700 mb-4">
+                            {{ review.review }}
+                        </div>
+
+                        <!-- Action Buttons (Edit and Delete, shown only for the review owner) -->
+                        {% if user == review.user %}
+                        <div class="flex space-x-2 mt-4">
+                            <a href="{% url 'reviews:edit_product_review' review.id %}" 
+                            class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                                Edit
+                            </a>
+                            <form action="{% url 'reviews:delete_product_review' review.id %}" method="post" class="delete-review-form">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer">Jane Smith</div>
-                            <div class="review-date">1 week ago</div>
-                        </div>
-                        <div class="review-text">
-                            The atmosphere is cozy and the staff is very friendly. Will definitely come back again!
-                        </div>
-                    </div>
+                    {% endfor %}
+
                 </div>
+                {% if not reviews %}
+                    <p class="no-reviews-placeholder">No reviews yet.</p>
+                {% endif %}
             </div>
         </div>
-    </div>
-</body>
-</html>
-{% endblock %}
+        
+        {% include 'create_product_review.html' %}
+        <script src="{% static 'js/reviewSubmission.js' %}"></script>
+        {% endblock %}
