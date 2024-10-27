@@ -219,6 +219,17 @@
                     </div>
                 </label>
 
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="breakfast_category" value="makanan_berat" class="peer sr-only">
+                    <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
+                        <div class="flex flex-col items-center">
+                            <img src="{% static 'images/makanan_berat.png' %}" alt="makanan_berat" class="w-30 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Sarapan</span>
+                            <span class="text-gray-700 font-medium">Berat</span>
+                        </div>
+                    </div>
+                </label>
+
                 <!-- Cemilan -->
                 <label class="relative cursor-pointer">
                     <input type="radio" name="breakfast_category" value="cemilan" class="peer sr-only">
@@ -230,13 +241,13 @@
                     </div>
                 </label>
 
-                <!-- Telur -->
                 <label class="relative cursor-pointer">
-                    <input type="radio" name="breakfast_category" value="telur" class="peer sr-only">
+                    <input type="radio" name="breakfast_category" value="makanan_sehat" class="peer sr-only">
                     <div class="p-4 bg-gray-50 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-[#FF5B00] hover:shadow-md">
                         <div class="flex flex-col items-center">
-                            <img src="{% static 'images/telur.png' %}" alt="Telur" class="w-20 h-20 mb-2">
-                            <span class="text-gray-700 font-medium">Telur</span>
+                            <img src="{% static 'images/telur.png' %}" alt="makanan_sehat" class="w-20 h-20 mb-2">
+                            <span class="text-gray-700 font-medium">Sarapan</span>
+                            <span class="text-gray-700 font-medium">Sehat</span>
                         </div>
                     </div>
                 </label>

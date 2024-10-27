@@ -895,11 +895,11 @@
             <div class="category-name">Mie</div>
         </a>
 
-        <a href="{% url 'main:browse_category' category='telur' %}" class="category-item">
+        <a href="{% url 'main:browse_category' category='makanan_sehat' %}" class="category-item">
             <div class="category-image">
-                <img src="{% static 'images/telur.png' %}" alt="Telur" />
+                <img src="{% static 'images/telur.png' %}" alt="Sarapan Sehat" />
             </div>
-            <div class="category-name">Telur</div>
+            <div class="category-name">Sarapan Sehat</div>
         </a>
 
         <a href="{% url 'main:browse_category' category='bubur' %}" class="category-item">
@@ -907,6 +907,13 @@
                 <img src="{% static 'images/bubur.png' %}" alt="Bubur" />
             </div>
             <div class="category-name">Bubur</div>
+        </a>
+
+        <a href="{% url 'main:browse_category' category='makanan_berat' %}" class="category-item">
+            <div class="category-image">
+                <img src="{% static 'images/makanan_berat.png' %}" alt="Makanan Berat" />
+            </div>
+            <div class="category-name">Sarapan Berat</div>
         </a>
     </div>
 </div>

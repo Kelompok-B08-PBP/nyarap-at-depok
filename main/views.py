@@ -434,8 +434,9 @@ def recommendation_list(request):
         'cemilan': 'Cemilan',
         'minuman': 'Minuman',
         'mie': 'Mie',
-        'telur': 'Telur',
-        'bubur': 'Bubur'
+        'makanan_sehat': 'Makanan Sehat',
+        'bubur': 'Bubur',
+        'makanan_berat': 'Makanan Berat',
     }
     location_display = dict(UserPreference.KECAMATAN_CHOICES)
     price_display = dict(UserPreference.PRICE_CHOICES)
@@ -543,8 +544,9 @@ def edit_preferences(request):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'telur': 'Telur',
-            'bubur': 'Bubur'
+            'makanan_sehat': 'Makanan Sehat',
+            'bubur': 'Bubur',
+            'makanan_berat': 'Makanan Berat',
         }
 
         context.update({
@@ -644,7 +646,7 @@ def browse_category(request, category):
 
     try:
         # Validate category
-        valid_categories = ['nasi', 'roti', 'lontong', 'cemilan', 'minuman', 'mie', 'telur', 'bubur']
+        valid_categories = ['nasi', 'roti', 'lontong', 'cemilan', 'minuman', 'mie', 'makanan_sehat', 'bubur', 'makanan_berat']
         if category.lower() not in valid_categories:
             messages.error(request, 'Kategori tidak valid.')
             return redirect('main:show_main')
@@ -660,8 +662,9 @@ def browse_category(request, category):
             'cemilan': 'Cemilan',
             'minuman': 'Minuman',
             'mie': 'Mie',
-            'telur': 'Telur',
-            'bubur': 'Bubur'
+            'makanan_sehat': 'Makanan Sehat',
+            'bubur': 'Bubur',
+            'makanan_berat': 'Makanan Berat',
         }
         
         context = {
