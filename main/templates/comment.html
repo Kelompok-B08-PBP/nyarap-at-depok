@@ -8,12 +8,17 @@
 
     <div class="comments-list" id="comments-list">
         {% for comment in comments %}
-            <div class="comment" id="comment-{{ comment.id }}" style="background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px;">
-                <p class="review-text" style="color: #4a5568;">{{ comment.content }}</p>
-                <p class="comment-author" style="font-weight: 600; color: #2d3748;">Dari: {{ comment.user.username }}</p>
-                <div class="comment-actions">
-                    <button class="edit-comment btn" data-comment-id="{{ comment.id }}" style="background: #FF5722; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Edit</button>
-                    <button class="delete-comment btn" data-comment-id="{{ comment.id }}" style="background: #E53E3E; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Hapus</button>
+            <div class="comment" id="comment-{{ comment.id }}" style="background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex-grow: 1;">
+                    <p class="review-text" style="color: #4a5568;">
+                        <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+                    </p>
+                </div>
+                <div class="comment-actions" style="margin-left: 16px;">
+                    {% if comment.user == user %}
+                        <button class="edit-comment btn" data-comment-id="{{ comment.id }}" style="background: #FF5722; color: white; border: none; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 12px;">Edit</button>
+                        <button class="delete-comment btn" data-comment-id="{{ comment.id }}" style="background: #E53E3E; color: white; border: none; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 12px;">Hapus</button>
+                    {% endif %}
                 </div>
             </div>
         {% empty %}

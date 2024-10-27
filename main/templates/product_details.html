@@ -202,6 +202,36 @@
             line-height: 1.6;
         }
 
+        .comment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 8px; /* Mengatur jarak antar tombol */
+        }
+
+        .edit-comment,
+        .delete-comment {
+            background: #FF5722; /* Warna tombol edit */
+            color: white;
+            border: none;
+            padding: 4px 8px; /* Ukuran tombol yang lebih kecil */
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px; /* Ukuran teks lebih kecil */
+        }
+
+        .delete-comment {
+            background: #E53E3E; /* Warna tombol hapus */
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 16px;

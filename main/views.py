@@ -775,6 +775,7 @@ def product_details(request, category, product_id):
             'product': product,
             'category': category,
             'comments': comments,
+            'user': request.user,
             'product_id': product_id,  # Tambahkan product_id ke dalam konteks
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
