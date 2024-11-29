@@ -2,11 +2,7 @@
 {% load static %}
 
 {% block meta %}
-<title>Product Details</title>
-<meta name="csrf-token" content="{{ csrf_token }}">
-{% endblock %}
-
-{% block content %}
+<title>Details</title>
 {% include 'navbar.html' %}
 <style>
     * {
@@ -224,17 +220,6 @@
             margin: 12px auto;
         }
 
-        .reviewer {
-            font-size: 14px;
-        }
-
-        .review-date {
-            font-size: 12px;
-        }
-
-        .review-text {
-            font-size: 13px;
-        }
         .product-header {
             height: 240px;
         }
@@ -323,19 +308,21 @@
                     </div>
                 </div>
 
+                <!-- In product_details.html -->
+                <form method="post" action="{% url 'nyarap_nanti:add_to_wishlist' product.id %}?source={{ source }}&category={{ category }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_url" value="{{ return_url }}">
+                    <button type="submit" class="btn {% if is_in_wishlist %}btn-danger{% else %}btn-primary{% endif %}">
+                        {% if is_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
+                    </button>
+                </form>
+
                 <div class="action-buttons">
-                    <form action="{% url 'add_to_wishlist' product.id %}" method="POST">
-                        {% csrf_token %}
-                    </form> 
-                    <a href="{% url 'wishlist_page' %}" class="nav-link {% if request.path == '/wishlist/' %}active{% endif %}">
-                        Wishlist
-                    </a>  
-                    
                     {% if user.is_authenticated %}
                     <!-- Add Review Button -->
                     <div class="flex justify-center mb-8">
                         <button id="addReviewBtn" 
-                            data-add-url="{% url 'reviews:add_product_review_ajax' %}"
+                            data-add-url="{% url 'reviews:add_product_review_ajax' product.id %}"
                             class="group relative inline-flex items-center px-8 py-3 overflow-hidden rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700">
                             <span class="absolute right-0 translate-x-full group-hover:-translate-x-4 transition-transform">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,8 +388,61 @@
                     <p class="no-reviews-placeholder">No reviews yet.</p>
                 {% endif %}
             </div>
+            {% include 'comment.html' %}
         </div>
         
         {% include 'create_product_review.html' %}
         <script src="{% static 'js/reviewSubmission.js' %}"></script>
         {% endblock %}
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('.delete-comment').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const commentId = this.getAttribute('data-comment-id');
+                        if (confirm("Apakah Anda yakin ingin menghapus komentar ini?")) {
+                            fetch(`/delete_comment/${commentId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                }
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    document.getElementById(`comment-${commentId}`).remove();
+                                } else {
+                                    alert("Terjadi kesalahan saat menghapus komentar.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+        document.querySelectorAll('.edit-comment').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-comment-id');
+                const commentTextElement = document.querySelector(`#comment-${commentId} .review-text`);
+                const originalText = commentTextElement.textContent;
+                
+                const newText = prompt("Edit komentar:", originalText);
+                if (newText) {
+                    fetch(`/edit_comment/${commentId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ 'content': newText }),
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            commentTextElement.textContent = newText;
+                        } else {
+                            alert("Terjadi kesalahan saat mengedit komentar.");
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

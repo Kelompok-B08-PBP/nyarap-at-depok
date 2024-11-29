@@ -100,6 +100,15 @@
             cursor: pointer; 
         }
 
+        .login-btn {
+            background-color: #FFC107; /* Color for the login button */
+            color: black; 
+            padding: 0.5rem 1rem; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+
         .filter-btn, .post-btn {
             background-color: white; 
             color: black; 
@@ -152,7 +161,7 @@
                 </button>
             </a>
         {% else %}
-            <button class="post-btn bg-white text-black font-semibold py-2 px-8 rounded-full shadow" onclick="showLoginMessage()">
+            <button class="post-btn bg-white text-black font-semibold py-2 px-8 rounded-full shadow" onclick="showLoginMessage(); hidePosts();">
                 Post
             </button>
         {% endif %}
@@ -160,9 +169,10 @@
 
     <!-- Login Message for Unauthenticated Users -->
     <div id="login-message" class="text-gray-500 mt-2 hidden text-center">
-        <p>Please log in to post your activity.</p>
+        <p>Please log in first.</p>
         <img src="{% static 'images/haruslogin.png' %}" alt="Login Required" class="mx-auto mt-4" style="max-width: 100px;">
     </div>
+    
     
     <!-- Posts Container -->
     <div class="main-container mt-8" id="posts-container">
@@ -188,6 +198,8 @@
                             {% csrf_token %}
                             <input type="submit" value="Delete" class="delete-btn" onclick="return confirm('Are you sure you want to delete this post?');"/>
                         </form>
+                    {% else %}
+                        <button class="login-btn" onclick="showLoginMessage()">Login to Post</button>
                     {% endif %}
                 </div>
             </div>
@@ -223,6 +235,10 @@
         document.getElementById('login-message').classList.add('hidden'); // Hide login message
     }
 
+    function hidePosts() {
+        document.getElementById('posts-container').innerHTML = ''; // Clear the posts
+    }
+
     function fetchPosts(filterType) {
         // Fetch posts based on filter type
         fetch(`/discovery/get-posts/?filter=${filterType}`)
@@ -252,7 +268,7 @@
             
             if (!isAuthenticated) {
                 showLoginMessage(); // Show the login message if user is not authenticated
-                document.getElementById('posts-container').innerHTML = ''; // Clear the posts
+                hidePosts(); // Clear the posts
             } else {
                 hideLoginMessage(); // Hide login message when user is authenticated
                 fetchPosts('yours'); // Fetch specific posts for "Yours"
@@ -260,5 +276,5 @@
         }
     }
 </script>
-{% include 'footer.html' %}
+
 {% endblock content %}

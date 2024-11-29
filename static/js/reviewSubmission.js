@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements 
+    // DOM Elements (checking each element individually to handle different pages)
     const elements = {
         modal: document.getElementById('crudModal'),
         addButton: document.getElementById('addReviewBtn'),
@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         generateCard(review) {
+            // Check if we're on the product details page or reviews page
             const isProductDetailsPage = document.body.classList.contains('product-details-page');
         
             if (isProductDetailsPage) {
@@ -136,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Star Rating Controller 
+    // Star Rating Controller (only initialize if stars are present)
     const StarRatingController = {
         updateStars(selectedValue) {
             elements.stars.forEach(star => {
@@ -167,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Review Submission Controller 
+    // Review Submission Controller (only initialize if reviewForm and addReviewUrl are present)
     const ReviewSubmissionController = {
         async submitReview(event) {
             event.preventDefault();

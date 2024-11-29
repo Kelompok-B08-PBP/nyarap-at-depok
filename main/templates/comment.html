@@ -1,0 +1,82 @@
+<div class="comments-section">
+    <h2 class="section-title">Komentar</h2>
+    <form id="add-comment-form" action="{% url 'main:add_comment' product_id %}" method="POST">
+        {% csrf_token %}
+        <textarea name="content" placeholder="Tulis komentar..." required style="width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 16px; resize: none;"></textarea>
+        <button type="submit" class="btn btn-review">Kirim Komentar</button>
+    </form>
+
+    <div class="comments-list" id="comments-list">
+        {% for comment in comments %}
+            <div class="comment" id="comment-{{ comment.id }}" style="background: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex-grow: 1;">
+                    <p class="review-text" style="color: #4a5568;">
+                        <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+                    </p>
+                </div>
+                <div class="comment-actions" style="margin-left: 16px;">
+                    {% if comment.user == user %}
+                        <button class="edit-comment btn" data-comment-id="{{ comment.id }}" style="background: #FF5722; color: white; border: none; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 12px;">Edit</button>
+                        <button class="delete-comment btn" data-comment-id="{{ comment.id }}" style="background: #E53E3E; color: white; border: none; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 12px;">Hapus</button>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>Tidak ada komentar.</p>
+        {% endfor %}
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const commentForm = document.getElementById('add-comment-form');
+        const commentsList = document.getElementById('comments-list');
+
+        commentForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Mencegah pengiriman form secara default
+
+            const formData = new FormData(commentForm);
+
+            fetch(commentForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Tambahkan komentar baru ke daftar komentar
+                    const newComment = document.createElement('div');
+                    newComment.className = 'comment';
+                    newComment.id = `comment-${data.comment.id}`;
+                    newComment.style.background = '#f8fafc';
+                    newComment.style.borderRadius = '16px';
+                    newComment.style.padding = '16px';
+                    newComment.style.marginBottom = '16px';
+                    newComment.innerHTML = `
+                        <p class="review-text" style="color: #4a5568;">${data.comment.content}</p>
+                        <p class="comment-author" style="font-weight: 600; color: #2d3748;">Dari: ${data.comment.user.username}</p>
+                        <div class="comment-actions">
+                            <button class="edit-comment btn" data-comment-id="${data.comment.id}" style="background: #FF5722; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Edit</button>
+                            <button class="delete-comment btn" data-comment-id="${data.comment.id}" style="background: #E53E3E; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Hapus</button>
+                        </div>
+                    `;
+
+                    // Menambahkan komentar baru ke daftar
+                    commentsList.prepend(newComment);
+                    commentForm.reset(); // Reset form
+                } else {
+                    alert("Terjadi kesalahan saat menambahkan komentar.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Terjadi kesalahan saat mengirim komentar.");
+            });
+        });
+
+        // Event listener untuk menghapus dan mengedit komentar
+        // Tambahkan event listener yang sama dengan yang sudah ada sebelumnya di sini
+    });
+</script>
