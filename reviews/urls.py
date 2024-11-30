@@ -5,7 +5,8 @@ app_name = 'reviews'
 
 urlpatterns = [
     path('show_reviews/', show_reviews, name='show_reviews'),  
-    path('add/', add_product_review_ajax, name='add_product_review_ajax'),  
+    path('add/<str:id>', add_product_review_ajax, name='add_product_review_ajax'),  
+    path('add/', add_product_review_ajax_all, name='add_product_review_ajax_all'),  
     path('xml/', show_xml, name='show_xml'),
     path('json/', show_json, name='show_json'),
     path('xml/<int:id>/', show_xml_by_id, name='show_xml_by_id'),

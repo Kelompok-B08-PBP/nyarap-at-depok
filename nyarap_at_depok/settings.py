@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-#r8z7-fal_cfwxz88l(+7apsnmxuzsdyea+-f=g22978)i(jn_
 PRODUCTION = os.getenv("PRODUCTION", False)
 DEBUG = not PRODUCTION
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id", "10.0.2.2"]
 
 # Application definition
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'nyarap_detailer',
     'nyarap_nanti',
     'reviews',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     
 ]
 

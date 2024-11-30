@@ -19,6 +19,7 @@ from django.conf import settings
 import hashlib
 from nyarap_nanti.models import Wishlist
 from django.views.decorators.http import require_POST
+from reviews.models import Product
 
 
 def load_recommendations_from_excel():
@@ -178,7 +179,6 @@ def show_main(request):
     }
 
     return render(request, "main.html", context)
-
 
 def create_preference_entry(request):
     form = PreferencesForm(request.POST or None)
@@ -439,7 +439,6 @@ def get_recommendations_by_category(category):
     except Exception as e:
         return []
 
-    
 def recommendation_list(request):
     # Dictionary to display human-readable values for the preferences
     breakfast_display = {
@@ -511,7 +510,6 @@ def recommendation_list(request):
     }
     
     return render(request, 'recommendation_list.html', context)
-
 
 @login_required
 def edit_preferences(request):
@@ -715,7 +713,7 @@ def product_details(request, category, product_id):
         is_in_wishlist = False
         
         try:
-            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
+            reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
             if request.user.is_authenticated:
                 is_in_wishlist = Wishlist.objects.filter(
                     user=request.user,
@@ -740,8 +738,7 @@ def product_details(request, category, product_id):
         
         # Check if request is coming from nyarap_nanti
         if 'nyarap_nanti' in request.GET.get('source', ''):
-            return redirect('nyarap_nanti:product_details', category=category, 
-                          product_id=product_id)
+            return redirect('nyarap_nanti:product_details', category=category, product_id=product_id)
         
         return render(request, 'product_details.html', context)
         
@@ -794,7 +791,6 @@ def add_to_wishlist(request, product_id):
         return redirect('main:product_details', 
                       category=category, 
                       product_id=product_id)
-
 
 def get_product_by_id(product_id):
     try:
@@ -893,21 +889,50 @@ def product_details_recommendation(request, product_id):
                     'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title()
                 }
 
+                # Get reviews and wishlist status
+                reviews = []
+                is_in_wishlist = False
+                try:
+                    reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
+                    if request.user.is_authenticated:
+                        is_in_wishlist = Wishlist.objects.filter(
+                            user=request.user,
+                            product_id=product_id
+                        ).exists()
+                except Exception as e:
+                    pass  # Handle silently as in original code
+
+                # Get comments
+                comments = Comment.objects.filter(product_identifier=product_id)
+
                 context = {
                     'product': formatted_product,
                     'is_authenticated': request.user.is_authenticated,
                     'name': request.user.username if request.user.is_authenticated else None,
+                    'reviews': reviews,
+                    'comments': comments,
+                    'show_reviews': True,
+                    'user': request.user,
+                    'is_in_wishlist': is_in_wishlist,
+                    'product_id': product_id,
+                    'return_url': request.GET.get('return_url', 'main:recommendation_list'),
                     'source': 'recommendations'
                 }
-                
+
+                # Check if request is coming from nyarap_nanti
+                if 'nyarap_nanti' in request.GET.get('source', ''):
+                    return redirect('nyarap_nanti:product_details', 
+                                 category=formatted_product['category'].lower(), 
+                                 product_id=product_id)
+
                 return render(request, 'product_details.html', context)
             else:
                 raise ValueError('Product index out of range')
         except (ValueError, IndexError):
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:recommendation_list')
-            
     except Exception as e:
+        print(f"Error in product_details_recommendation: {str(e)}")
         messages.error(request, f'Terjadi kesalahan saat memuat detail produk: {str(e)}')
         return redirect('main:recommendation_list')
     

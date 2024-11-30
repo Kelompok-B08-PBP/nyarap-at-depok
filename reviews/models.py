@@ -9,7 +9,7 @@ class Product(models.Model):
     review = models.TextField()  # Review produk
     rating = models.IntegerField(default=0)  # Rating dengan 5 stars
     date_added = models.DateTimeField(default=timezone.now)  # Waktu saat membuat review
-    
+    product_identifier = models.CharField(max_length=255)  # ID produk
     class Meta:
         ordering = ['-date_added']
 

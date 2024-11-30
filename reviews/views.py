@@ -23,7 +23,7 @@ def show_reviews(request):
 @login_required(login_url='/login')
 @csrf_exempt
 @require_POST
-def add_product_review_ajax(request):
+def add_product_review_ajax(request,id):
     # Mengambil dan membersihkan data form dari permintaan POST
     restaurant_name = strip_tags(request.POST.get("restaurant_name"))
     food_name = strip_tags(request.POST.get("food_name"))
@@ -37,7 +37,36 @@ def add_product_review_ajax(request):
         food_name=food_name,
         rating=rating,
         review=review_text,
-        user=user  
+        user=user,
+        product_identifier = id,
+    )
+    new_review.save()
+
+    # Mengembalikan respon dalam bentuk JSON yang berisi detail review baru
+    return JsonResponse({
+        'id': new_review.id,
+        'restaurant_name': new_review.restaurant_name,
+        'food_name': new_review.food_name,
+        'rating': new_review.rating,
+        'review': new_review.review,
+        'date_added': new_review.date_added.strftime("%Y-%m-%d"),
+    })
+
+def add_product_review_ajax_all(request):
+    # Mengambil dan membersihkan data form dari permintaan POST
+    restaurant_name = strip_tags(request.POST.get("restaurant_name"))
+    food_name = strip_tags(request.POST.get("food_name"))
+    rating = int(strip_tags(request.POST.get("rating")))
+    review_text = strip_tags(request.POST.get("review"))
+    user = request.user
+
+    # Membuat dan menyimpan instance baru dari Product sebagai review
+    new_review = Product(
+        restaurant_name=restaurant_name,
+        food_name=food_name,
+        rating=rating,
+        review=review_text,
+        user=user,
     )
     new_review.save()
 
