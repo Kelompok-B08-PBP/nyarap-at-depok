@@ -1,5 +1,5 @@
 import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from main.forms import PreferencesForm
 from main.models import UserPreference, Restaurant
 from django.http import HttpResponse, JsonResponse
@@ -218,14 +218,6 @@ def register(request):
     context = {'form':form}
     return render(request, 'register.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-import datetime
-
 def login_user(request):
    if request.method == 'POST':
       form = AuthenticationForm(data=request.POST)
@@ -236,8 +228,6 @@ def login_user(request):
         response = HttpResponseRedirect(reverse("main:show_main"))
         response.set_cookie('last_login', str(datetime.datetime.now()))
         return response
-      else:
-          messages.error(request, "Invalid username or password. Please try again.")
 
    else:
       form = AuthenticationForm(request)
@@ -249,7 +239,6 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return redirect('main:login')
-
 
 def recommendations(request):
     if request.method == 'POST':
@@ -900,50 +889,21 @@ def product_details_recommendation(request, product_id):
                     'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title()
                 }
 
-                # Get reviews and wishlist status
-                reviews = []
-                is_in_wishlist = False
-                try:
-                    reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
-                    if request.user.is_authenticated:
-                        is_in_wishlist = Wishlist.objects.filter(
-                            user=request.user,
-                            product_id=product_id
-                        ).exists()
-                except Exception as e:
-                    pass  # Handle silently as in original code
-
-                # Get comments
-                comments = Comment.objects.filter(product_identifier=product_id)
-
                 context = {
                     'product': formatted_product,
                     'is_authenticated': request.user.is_authenticated,
                     'name': request.user.username if request.user.is_authenticated else None,
-                    'reviews': reviews,
-                    'comments': comments,
-                    'show_reviews': True,
-                    'user': request.user,
-                    'is_in_wishlist': is_in_wishlist,
-                    'product_id': product_id,
-                    'return_url': request.GET.get('return_url', 'main:recommendation_list'),
                     'source': 'recommendations'
                 }
-
-                # Check if request is coming from nyarap_nanti
-                if 'nyarap_nanti' in request.GET.get('source', ''):
-                    return redirect('nyarap_nanti:product_details', 
-                                 category=formatted_product['category'].lower(), 
-                                 product_id=product_id)
-
+                
                 return render(request, 'product_details.html', context)
             else:
                 raise ValueError('Product index out of range')
         except (ValueError, IndexError):
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:recommendation_list')
+            
     except Exception as e:
-        print(f"Error in product_details_recommendation: {str(e)}")
         messages.error(request, f'Terjadi kesalahan saat memuat detail produk: {str(e)}')
         return redirect('main:recommendation_list')
     
@@ -1018,14 +978,21 @@ def add_comment(request, product_id):
     return JsonResponse({'success': False}, status=400)
 
 @require_POST
-def edit_comment(request, comment_id):
-    comment = Comment.objects.get(id=comment_id)
-    comment.content = request.POST.get('content')
-    comment.save()
-    return JsonResponse({'message': 'Comment edited successfully!'})
-
-@require_POST
 def delete_comment(request, comment_id):
-    comment = Comment.objects.get(id=comment_id)
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.user != request.user:  # Validasi hak akses
+        return JsonResponse({'error': 'Permission denied'}, status=403)
     comment.delete()
     return JsonResponse({'message': 'Comment deleted successfully!'})
+
+@require_POST
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.user != request.user:  # Validasi hak akses
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    content = request.POST.get('content')
+    if not content:  # Validasi input
+        return JsonResponse({'error': 'Content cannot be empty'}, status=400)
+    comment.content = content
+    comment.save()
+    return JsonResponse({'message': 'Comment edited successfully!'})
