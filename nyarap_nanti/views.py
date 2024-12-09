@@ -14,14 +14,65 @@ from main.views import get_product_by_id
 logger = logging.getLogger(__name__)
 
 @login_required
+def add_to_wishlist(request, product_id):
+    # Mengambil data produk berdasarkan ID
+    product = get_product_by_id(product_id)  
+    if not product:
+        messages.error(request, "Produk tidak ditemukan.")
+        return redirect('main:product_details', product_id=product_id)
+
+    # Ambil wishlist dari sesi atau buat baru jika belum ada
+    wishlist = request.session.get('wishlist', [])
+
+    # Cek apakah produk sudah ada di wishlist
+    if not any(item['id'] == product_id for item in wishlist):
+        wishlist.append({
+            'id': product_id,
+            'name': product['name'],
+            'category': product.get('category', 'umum'),
+            'location': product.get('location', ''),
+            'price': float(product.get('price', 0)),
+            'rating': product.get('rating', 0.0),
+            'operational_hours': product.get('operational_hours', ''),
+            'restaurant': product.get('restaurant', ''),
+            'image_url': product.get('image_url', '/api/placeholder/400/320'),  # Tambahkan image_url
+            'display_price': product.get('display_price', 'Harga belum tersedia')
+        })
+        request.session['wishlist'] = wishlist
+        messages.success(request, f"{product['name']} berhasil ditambahkan ke wishlist.")
+    else:
+        messages.info(request, f"{product['name']} sudah ada di wishlist.")
+
+    return redirect('nyarap_nanti:wishlist_page')
+
+@login_required
 def wishlist_page(request):
-    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
-    collections = wishlist.collections.all()
-    wishlist_items = request.session.get('wishlist', [])
-    return render(request, 'wishlist.html', {
-        'collections': collections,
-        'wishlist_items': wishlist_items
-    })
+    try:
+        # Get the wishlist from session
+        wishlist_items = request.session.get('wishlist', [])
+        
+        # Get all collections for the user
+        collections = Collection.objects.filter(wishlist__user=request.user)
+        
+        # Add any missing fields to wishlist items
+        for item in wishlist_items:
+            if 'image_url' not in item:
+                item['image_url'] = '/api/placeholder/400/320'
+            if 'display_price' not in item:
+                item['display_price'] = f"Rp {float(item.get('price', 0)):,.0f}"
+                
+        context = {
+            'collections': collections,
+            'wishlist_items': wishlist_items,
+            'is_authenticated': request.user.is_authenticated,
+            'name': request.user.username if request.user.is_authenticated else None,
+        }
+        
+        return render(request, 'wishlist.html', context)
+    except Exception as e:
+        logger.error(f"Error in wishlist_page: {str(e)}")
+        messages.error(request, "Terjadi kesalahan saat memuat wishlist.")
+        return redirect('main:show_main')
 
 @login_required
 def create_collection(request):
@@ -40,12 +91,6 @@ def collection_detail(request, collection_id):
         'collection': collection,
         'items': items
     })
-
-@login_required
-def remove_from_wishlist(request, restaurant_id):
-    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-    CollectionItem.objects.filter(restaurant=restaurant).delete()
-    return redirect('nyarap_nanti:wishlist_page')
 
 @csrf_exempt
 @login_required
@@ -106,3 +151,6 @@ def remove_from_wishlist(request, product_id):
     request.session['wishlist'] = wishlist  # Simpan perubahan ke sesi
     messages.success(request, "Produk berhasil dihapus dari wishlist.")
     return redirect('nyarap_nanti:wishlist_page')
+
+
+

@@ -1,6 +1,5 @@
 import datetime
-import logging
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from main.forms import PreferencesForm
 from main.models import UserPreference, Restaurant
 from django.http import HttpResponse, JsonResponse
@@ -13,18 +12,20 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .forms import PreferencesForm
-from .models import UserPreference
+from .forms import PreferencesForm, CommentForm
+from .models import UserPreference, Comment
 import pandas as pd
 from django.conf import settings
 import hashlib
+from nyarap_nanti.models import Wishlist
+from django.views.decorators.http import require_POST
+from reviews.models import Product
 
-logger = logging.getLogger(__name__)
+
 def load_recommendations_from_excel():
     try:
         excel_path = settings.EXCEL_DATA_PATH
         df = pd.read_excel(excel_path)
-        
         kategori_mapping = {
             'Makanan Sehat': 'makanan_sehat',
             'Makanan Berat': 'makanan_berat'
@@ -32,6 +33,7 @@ def load_recommendations_from_excel():
         
         # Standardisasi kategori sebelum lowercase dan strip
         df['Kategori'] = df['Kategori'].replace(kategori_mapping, regex=False)
+
         df['Kategori'] = df['Kategori'].str.lower().str.strip()
         df['Kecamatan'] = df['Kecamatan'].strip() if isinstance(df['Kecamatan'], str) else df['Kecamatan']
         
@@ -77,10 +79,8 @@ def load_recommendations_from_excel():
                     'rating': rating,
                     'operational_hours': str(row['Jam Operasional']).strip(),
                     'location': str(row['Lokasi']),
-
                     'price': clean_price,
                     'image_url': image_url
-
                 })
                 
             except KeyError as e:
@@ -179,7 +179,6 @@ def show_main(request):
     }
 
     return render(request, "main.html", context)
-
 
 def create_preference_entry(request):
     form = PreferencesForm(request.POST or None)
@@ -440,7 +439,6 @@ def get_recommendations_by_category(category):
     except Exception as e:
         return []
 
-    
 def recommendation_list(request):
     # Dictionary to display human-readable values for the preferences
     breakfast_display = {
@@ -451,12 +449,9 @@ def recommendation_list(request):
         'cemilan': 'Cemilan',
         'minuman': 'Minuman',
         'mie': 'Mie',
-        'telur': 'Telur',
-        'bubur': 'Bubur'
         'makanan_sehat': 'Sarapan Sehat',
         'bubur': 'Bubur',
         'makanan_berat': 'Sarapan Berat',
-
     }
     location_display = dict(UserPreference.KECAMATAN_CHOICES)
     price_display = dict(UserPreference.PRICE_CHOICES)
@@ -483,24 +478,6 @@ def recommendation_list(request):
     else:
         recommended_products = get_recommendations(breakfast_type, location, price_range)
 
-
-    # Add ID to each recommended product
-    recommendations_with_id = []
-    for index, product in enumerate(recommended_products, start=1):
-        product_dict = product
-        if not isinstance(product, dict):
-            product_dict = {
-                'name': getattr(product, 'name', ''),
-                'price': getattr(product, 'price', ''),
-                'restaurant': getattr(product, 'restaurant', ''),
-                'rating': getattr(product, 'rating', ''),
-                'kategori': getattr(product, 'kategori', ''),
-                'kecamatan': getattr(product, 'kecamatan', ''),
-                'operational_hours': getattr(product, 'operational_hours', ''),
-                'image_url': getattr(product, 'image_url', ''),
-            }
-        product_dict['id'] = index
-
     # Add ID to each recommended product - Gunakan current_id untuk konsistensi
     recommendations_with_id = []
     current_id = 1  # Mulai dari 1
@@ -518,7 +495,6 @@ def recommendation_list(request):
         }
         product_dict['id'] = current_id
         current_id += 1  # Increment ID
-
         recommendations_with_id.append(product_dict)
 
     context = {
@@ -534,7 +510,6 @@ def recommendation_list(request):
     }
     
     return render(request, 'recommendation_list.html', context)
-
 
 @login_required
 def edit_preferences(request):
@@ -609,7 +584,6 @@ def edit_preferences(request):
     return render(request, 'edit_preference_ajax.html', context)
 
 def generate_product_id(name, restaurant, location):
-
     identifier = f"{name}_{restaurant}_{location}"
     hash_object = hashlib.md5(identifier.encode())
     return int(hash_object.hexdigest()[:8], 16)
@@ -726,51 +700,148 @@ def browse_category(request, category):
 
 def product_details(request, category, product_id):
     try:
-        # Get product details using the product_id
+        # Get product details
         product = get_product_by_id(int(product_id))
         if not product:
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
-        product['id'] = product_id 
-        try:
-            from reviews.models import Review
-            reviews = Review.objects.filter(product_id=product_id).order_by('-created_at')
-        except ImportError:
-            reviews = []
         
+        product['id'] = product_id
+        
+        # Get reviews and wishlist status
+        reviews = []
+        is_in_wishlist = False
+        
+        try:
+            reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
+            if request.user.is_authenticated:
+                is_in_wishlist = Wishlist.objects.filter(
+                    user=request.user,
+                    product_id=product_id
+                ).exists()
+        except Exception as e:
+            pass
+        comments = Comment.objects.filter(product_identifier=product_id)
         context = {
             'product': product,
             'category': category,
             'is_authenticated': request.user.is_authenticated,
             'name': request.user.username if request.user.is_authenticated else None,
             'reviews': reviews,
-            'show_reviews': False  # Default tidak menampilkan review section
+            'comments': comments,
+            'show_reviews': True,
+            'user': request.user,
+            'is_in_wishlist': is_in_wishlist,
+            'product_id': product_id,
+            'return_url': request.GET.get('return_url', 'main:browse_category')
         }
+        
+        # Check if request is coming from nyarap_nanti
+        if 'nyarap_nanti' in request.GET.get('source', ''):
+            return redirect('nyarap_nanti:product_details', category=category, product_id=product_id)
+        
         return render(request, 'product_details.html', context)
+        
     except ValueError:
         messages.error(request, 'ID produk tidak valid.')
         return redirect('main:browse_category', category=category)
     except Exception as e:
+        print(f"Error in product_details: {str(e)}")
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
 
-def load_data_to_restaurant():
-    excel_path = settings.EXCEL_DATA_PATH  # Pastikan path ini mengarah ke file `.xlsx`
-    df = pd.read_excel(excel_path)
+@login_required
+def add_to_wishlist(request, product_id):
+    if request.method == 'POST':
+        try:
+            # Check if product exists first
+            product = get_product_by_id(int(product_id))
+            if not product:
+                messages.error(request, 'Product not found.')
+                return redirect('main:show_main')
+
+            wishlist_item, created = Wishlist.objects.get_or_create(
+                user=request.user,
+                product_id=product_id,
+                defaults={
+                    'product_id': product_id  # Explicitly set product_id
+                }
+            )
+            
+            if created:
+                messages.success(request, 'Product added to wishlist successfully!')
+            else:
+                wishlist_item.delete()
+                messages.success(request, 'Product removed from wishlist.')
+                
+        except Exception as e:
+            print(f"Error in add_to_wishlist: {str(e)}")
+            messages.error(request, 'Failed to update wishlist.')
     
-    for _, row in df.iterrows():
-        Restaurant.objects.update_or_create(
-            name=row['Nama Produk'].strip(),
-            defaults={
-                'category': row['Kategori'].strip().lower(),
-                'location': row['Lokasi'].strip(),
-                'price': float(row['Harga']),
-                'rating': float(str(row['Rating']).replace(',', '.')),
-                'operational_hours': row['Jam Operasional'].strip(),
-            }
-        )
-        messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
-        return redirect('main:browse_category', category=category)
+    # Get return URL and source from request
+    source = request.GET.get('source', '')
+    category = request.GET.get('category', '')
+    
+    # Determine which app to return to
+    if 'nyarap_nanti' in source:
+        return redirect('nyarap_nanti:wishlist_page', 
+                      category=category, 
+                      product_id=product_id)
+    else:
+        return redirect('main:product_details', 
+                      category=category, 
+                      product_id=product_id)
+
+def get_product_by_id(product_id):
+    try:
+        all_recommendations = load_recommendations_from_excel()
+        found_product = None
+        
+        # Counter for numeric ID matching
+        current_id = 1
+        
+        # Search through all categories and locations
+        for category, locations in all_recommendations.items():
+            for location, items in locations.items():
+                for item in items:
+                    # Try both numeric ID and hash ID matching
+                    hash_id = generate_product_id(item['name'], item['restaurant'], location)
+                    
+                    if product_id == current_id or product_id == hash_id:
+                        found_product = item.copy()
+                        found_product.update({
+                            'id': current_id,  # Keep the numeric ID
+                            'category': category,
+                            'kecamatan': location,
+                            'name': item['name'],
+                            'restaurant': item['restaurant'],
+                            'rating': float(str(item.get('rating', '0')).replace(',', '.')),
+                            'operational_hours': item.get('operational_hours', ''),
+                            'location': item.get('location', ''),
+                             'image_url': item.get('image_url', '/api/placeholder/800/400'),
+                        })
+                        
+                        # Handle price display
+                        try:
+                            if isinstance(item['price'], (int, float)):
+                                found_product['display_price'] = f"Rp {float(item['price']):,.0f}"
+                            else:
+                                price_str = str(item['price']).replace('Rp', '').replace(',', '').replace('.', '').strip()
+                                if price_str and price_str.isdigit():
+                                    found_product['display_price'] = f"Rp {float(price_str):,.0f}"
+                                else:
+                                    found_product['display_price'] = "Harga belum tersedia"
+                        except (ValueError, KeyError):
+                            found_product['display_price'] = "Harga belum tersedia"
+                            
+                        return found_product
+                    
+                    current_id += 1
+        
+        return None
+        
+    except Exception as e:
+        return None
 
 def product_details_recommendation(request, product_id):
     try:
@@ -869,3 +940,59 @@ def delete_preferences(request):
             'message': 'Invalid request method'
         })
     return redirect('main:show_main')
+
+def load_data_to_restaurant():
+    excel_path = settings.EXCEL_DATA_PATH  # Pastikan path ini mengarah ke file `.xlsx`
+    df = pd.read_excel(excel_path)
+    
+    for _, row in df.iterrows():
+        Restaurant.objects.update_or_create(
+            name=row['Nama Produk'].strip(),
+            defaults={
+                'category': row['Kategori'].strip().lower(),
+                'location': row['Lokasi'].strip(),
+                'price': float(row['Harga']),
+                'rating': float(str(row['Rating']).replace(',', '.')),
+                'operational_hours': row['Jam Operasional'].strip(),
+            }
+        )
+
+def add_comment(request, product_id):
+    if request.method == "POST":
+        content = request.POST.get('content')
+        user = request.user
+        
+        # Buat komentar baru
+        comment = Comment.objects.create(user=user, content=content, product_identifier=product_id)
+
+        return JsonResponse({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'content': comment.content,
+                'user': {
+                    'username': user.username
+                }
+            }
+        })
+    return JsonResponse({'success': False}, status=400)
+
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.user != request.user:  # Validasi hak akses
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    comment.delete()
+    return JsonResponse({'message': 'Comment deleted successfully!'})
+
+@require_POST
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.user != request.user:  # Validasi hak akses
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    content = request.POST.get('content')
+    if not content:  # Validasi input
+        return JsonResponse({'error': 'Content cannot be empty'}, status=400)
+    comment.content = content
+    comment.save()
+    return JsonResponse({'message': 'Comment edited successfully!'})

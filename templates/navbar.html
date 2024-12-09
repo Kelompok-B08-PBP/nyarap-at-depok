@@ -18,7 +18,7 @@
                 <a href="{% url 'discovery:show_post' %}" class="nav-link">
                     Community
                 </a>
-                <a href="{% url 'wishlist_page' %}" class="nav-link">
+                <a href="{% url 'nyarap_nanti:wishlist_page' %}" class="nav-link">
                     Wishlist
                 </a>                
                 <a href="{% url 'reviews:show_reviews' %}" class="nav-link">
@@ -58,7 +58,7 @@
            class="block py-2 text-sm font-lexend {% if request.path == '/discovery/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
            Community
         </a>
-        <a href="{% url 'wishlist_page' %}" 
+        <a href="{% url 'nyarap_nanti:wishlist_page' %}" 
            class="block py-2 text-sm font-lexend {% if request.path == '/wishlist/' %}text-[#C3372B]{% else %}text-[#737373] hover:text-[#C3372B]{% endif %}">
            Wishlist
         </a>
