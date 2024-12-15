@@ -122,51 +122,29 @@ CSRF_TRUSTED_ORIGINS = [
 LOGIN_URL = 'main:login'
 LOGIN_REDIRECT_URL = 'main:show_main'
 
-# Session Settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_HTTPONLY = True
-
-# Development Settings
-if DEBUG:
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    CORS_ALLOW_CREDENTIALS = True
-    CORS_ALLOW_ALL_ORIGINS = True
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    SESSION_COOKIE_SAMESITE = 'Lax'
-else:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CORS_ALLOW_CREDENTIALS = True
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SAMESITE = 'None'
-
-# CORS Settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://10.0.2.2:8000",
+    "http://localhost:8080",  # Flutter web default port
+    "http://127.0.0.1:8080",
 ]
 
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+# Update CSRF_TRUSTED_ORIGINS juga untuk include semua port
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id",
+    "https://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id"
 ]
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
+# Pastikan development settings konsisten
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CORS_ALLOW_CREDENTIALS = True
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CORS_ORIGIN_ALLOW_ALL = True 

@@ -20,7 +20,8 @@ import hashlib
 from nyarap_nanti.models import Wishlist
 from django.views.decorators.http import require_POST
 from reviews.models import Product
-
+from django.contrib.auth.models import User
+import json
 
 def load_recommendations_from_excel():
     try:
@@ -1029,3 +1030,222 @@ def delete_comment(request, comment_id):
     comment = Comment.objects.get(id=comment_id)
     comment.delete()
     return JsonResponse({'message': 'Comment deleted successfully!'})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@csrf_exempt
+def get_recommendations_json(request):
+    if request.method == 'POST':
+        try:
+            # Parse request data
+            data = json.loads(request.body)
+            print("Received data:", data)  # Debug print
+
+            # Extract parameters
+            breakfast_type = data.get('breakfast_type', '').lower().strip()
+            location = data.get('location', '').title().strip()
+            price_range = data.get('price_range', '')
+
+            print(f"Looking for: {breakfast_type} in {location} with price range {price_range}")
+
+            # Get recommendations directly from Excel without complex filtering
+            recommendations = []
+            df = pd.read_excel(settings.EXCEL_DATA_PATH)
+            
+            # Filter dataframe directly (more efficient)
+            mask = (
+                (df['Kategori'].str.lower().str.strip() == breakfast_type) & 
+                (df['Kecamatan'].str.strip() == location)
+            )
+            filtered_df = df[mask]
+
+            # Convert to list of dicts
+            for _, row in filtered_df.iterrows():
+                try:
+                    price = str(row['Harga'])
+                    price_value = float(''.join(c for c in price if c.isdigit() or c == '.')) if price and price.strip() else 0
+                    
+                    recommendations.append({
+                        'name': str(row['Nama Produk']).strip(),
+                        'restaurant': str(row['nama_restoran']).strip(),
+                        'price': f"Rp {price_value:,.0f}" if price_value > 0 else "Harga belum tersedia",
+                        'rating': float(str(row['Rating']).replace(',', '.')) if pd.notna(row['Rating']) else 0.0,
+                        'image_url': str(row['Link Foto']) if pd.notna(row['Link Foto']) else '/api/placeholder/400/320',
+                        'location': str(row['Lokasi']).strip() if pd.notna(row['Lokasi']) else '',
+                        'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else ''
+                    })
+                except Exception as e:
+                    print(f"Error processing row: {e}")
+                    continue
+
+            print(f"Found {len(recommendations)} recommendations")
+            
+            return JsonResponse({
+                'status': 'success',
+                'recommendations': recommendations
+            })
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
+    
+def preferences_api(request):
+    try:
+        if request.method == 'GET':
+            # Get existing preferences
+            response_data = {
+                'breakfast_choices': {
+                    'masih_bingung': 'Masih Bingung',
+                    'nasi': 'Nasi',
+                    'roti': 'Roti',
+                    'lontong': 'Lontong',
+                    'cemilan': 'Cemilan',
+                    'minuman': 'Minuman',
+                    'mie': 'Mie',
+                    'makanan_sehat': 'Sarapan Sehat',
+                    'bubur': 'Bubur',
+                    'makanan_berat': 'Sarapan Berat',
+                },
+                'location_choices': dict(UserPreference.KECAMATAN_CHOICES),
+                'price_choices': dict(UserPreference.PRICE_CHOICES),
+                'current_preferences': None,
+                'is_authenticated': request.user.is_authenticated
+            }
+
+            # Add user data if authenticated
+            if request.user.is_authenticated:
+                try:
+                    preference = UserPreference.objects.get(user=request.user)
+                    response_data['current_preferences'] = {
+                        'breakfast_category': preference.preferred_breakfast_type,
+                        'district_category': preference.preferred_location,
+                        'price_range': preference.preferred_price_range,
+                    }
+                except UserPreference.DoesNotExist:
+                    pass
+
+            return JsonResponse({
+                'status': 'success',
+                'data': response_data
+            })
+
+        elif request.method == 'POST':
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            breakfast_category = data.get('breakfast_category')
+            district_category = data.get('district_category')
+            price_range = data.get('price_range')
+
+            # Validate required fields
+            if not all([breakfast_category, district_category, price_range]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Missing required fields',
+                    'required_fields': ['breakfast_category', 'district_category', 'price_range']
+                }, status=400)
+
+            try:
+                if request.user.is_authenticated:
+                    # Update or create preferences for authenticated user
+                    preference, created = UserPreference.objects.update_or_create(
+                        user=request.user,
+                        defaults={
+                            'preferred_breakfast_type': breakfast_category,
+                            'preferred_location': district_category,
+                            'preferred_price_range': price_range,
+                        }
+                    )
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'data': {
+                            'message': 'Preferences updated successfully',
+                            'preferences': {
+                                'breakfast_category': preference.preferred_breakfast_type,
+                                'district_category': preference.preferred_location,
+                                'price_range': preference.preferred_price_range,
+                            }
+                        }
+                    })
+                else:
+                    # For non-authenticated users, store in session
+                    request.session['preferred_breakfast_type'] = breakfast_category
+                    request.session['preferred_location'] = district_category
+                    request.session['preferred_price_range'] = price_range
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'data': {
+                            'message': 'Session preferences saved successfully',
+                            'preferences': {
+                                'breakfast_category': breakfast_category,
+                                'district_category': district_category,
+                                'price_range': price_range,
+                            }
+                        }
+                    })
+
+            except Exception as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                }, status=500)
+
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed'
+        }, status=405)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@csrf_exempt
+@login_required
+def get_user_data(request):
+    """
+    Endpoint to get authenticated user data
+    Returns user information and preferences if they exist
+    """
+    try:
+        user = request.user
+        data = {
+            'status': 'success',
+            'data': {
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_authenticated': True,
+                }
+            }
+        }
+
+        # Get user preferences if they exist
+        try:
+            preference = UserPreference.objects.get(user=user)
+            data['data']['preferences'] = {
+                'breakfast_category': preference.preferred_breakfast_type,
+                'district_category': preference.preferred_location,
+                'price_range': preference.preferred_price_range,
+            }
+        except UserPreference.DoesNotExist:
+            data['data']['preferences'] = None
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
