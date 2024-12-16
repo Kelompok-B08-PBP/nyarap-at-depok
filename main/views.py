@@ -1045,8 +1045,30 @@ def get_recommendations_json(request):
             location = data.get('location', '').title().strip()
             price_range = data.get('price_range', '')
 
-            print(f"Looking for: {breakfast_type} in {location} with price range {price_range}")
+            # Save preferences if user is authenticated
+            if request.user.is_authenticated:
+                try:
+                    # Update or create preference
+                    preference, created = UserPreference.objects.update_or_create(
+                        user=request.user,
+                        defaults={
+                            'preferred_breakfast_type': breakfast_type,
+                            'preferred_location': location,
+                            'preferred_price_range': price_range,
+                        }
+                    )
+                    print(f"Preferences {'created' if created else 'updated'} for user {request.user.username}")
+                except Exception as e:
+                    print(f"Error saving preferences: {e}")
+            else:
+                # Store preferences in session for non-authenticated users
+                request.session['preferred_breakfast_type'] = breakfast_type
+                request.session['preferred_location'] = location
+                request.session['preferred_price_range'] = price_range
+                print("Preferences saved to session")
 
+            print(f"Looking for: {breakfast_type} in {location} with price range {price_range}")
+            
             # Get recommendations from Excel
             recommendations = []
             df = pd.read_excel(settings.EXCEL_DATA_PATH)
@@ -1229,10 +1251,6 @@ def preferences_api(request):
 @csrf_exempt
 @login_required
 def get_user_data(request):
-    """
-    Endpoint to get authenticated user data
-    Returns user information and preferences if they exist
-    """
     try:
         user = request.user
         data = {
@@ -1247,10 +1265,10 @@ def get_user_data(request):
             }
         }
 
-        # Get user preferences if they exist
         try:
             preference = UserPreference.objects.get(user=user)
             data['data']['preferences'] = {
+                'id': str(preference.id),  # Include the UUID
                 'breakfast_category': preference.preferred_breakfast_type,
                 'district_category': preference.preferred_location,
                 'price_range': preference.preferred_price_range,
@@ -1297,3 +1315,40 @@ def delete_preferences_flutter(request):
             'status': 'error',
             'message': str(e)
         }, status=500)
+    
+
+
+@csrf_exempt
+@login_required
+def save_preferences_flutter(request):
+    if request.method == 'POST':
+        try:
+            # Data sudah otomatis di-decode oleh Django
+            data = request.POST
+            # Atau jika mengirim sebagai JSON:
+            # data = json.loads(request.body)
+            
+            preference, created = UserPreference.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'preferred_breakfast_type': data.get('breakfast_category'),
+                    'preferred_location': data.get('district_category'),
+                    'preferred_price_range': data.get('price_range'),
+                }
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Preferences saved successfully'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
