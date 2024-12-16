@@ -1,5 +1,5 @@
 from django.urls import path
-from main.views import show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment, preferences_api, get_recommendations_json, get_user_data
+from main.views import show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment, preferences_api, get_recommendations_json, get_user_data, delete_preferences_flutter
 
 
 app_name = 'main'
@@ -28,6 +28,6 @@ urlpatterns = [
     path('api/preferences/', preferences_api, name='preferences_api'),
     path('api/recommendations/', get_recommendations_json, name='recommendations_api'),
     path('get_user_data/', get_user_data, name='get_user_data'),
-    
+    path('api/preferences/delete/', delete_preferences_flutter, name='delete_preferences'),
 ]
     

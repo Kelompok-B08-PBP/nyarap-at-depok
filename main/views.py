@@ -1031,7 +1031,6 @@ def delete_comment(request, comment_id):
     comment.delete()
     return JsonResponse({'message': 'Comment deleted successfully!'})
 
-@csrf_exempt
 @require_http_methods(["POST"])
 @csrf_exempt
 def get_recommendations_json(request):
@@ -1048,14 +1047,31 @@ def get_recommendations_json(request):
 
             print(f"Looking for: {breakfast_type} in {location} with price range {price_range}")
 
-            # Get recommendations directly from Excel without complex filtering
+            # Get recommendations from Excel
             recommendations = []
             df = pd.read_excel(settings.EXCEL_DATA_PATH)
             
-            # Filter dataframe directly (more efficient)
+            # Convert price strings to numeric values for comparison
+            df['price_value'] = df['Harga'].apply(lambda x: float(''.join(c for c in str(x) if c.isdigit() or c == '.')) if pd.notna(x) and str(x).strip() else 0)
+
+            # Define price range filters based on PRICE_CHOICES
+            price_filters = {
+                '0-15000': (0, 15000),
+                '15000-25000': (15000, 25000),
+                '25000-50000': (25000, 50000),
+                '50000-100000': (50000, 100000),
+                '100000+': (100000, float('inf'))
+            }
+
+            # Get price range bounds
+            min_price, max_price = price_filters.get(price_range, (0, float('inf')))
+
+            # Filter dataframe with all conditions
             mask = (
                 (df['Kategori'].str.lower().str.strip() == breakfast_type) & 
-                (df['Kecamatan'].str.strip() == location)
+                (df['Kecamatan'].str.strip() == location) &
+                (df['price_value'] >= min_price) &
+                (df['price_value'] < max_price if max_price != float('inf') else df['price_value'] >= min_price)
             )
             filtered_df = df[mask]
 
@@ -1243,6 +1259,38 @@ def get_user_data(request):
             data['data']['preferences'] = None
 
         return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    
+@require_http_methods(["POST"])
+@csrf_exempt
+def delete_preferences_flutter(request):
+    """
+    Endpoint to delete user preferences
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Authentication required'
+        }, status=401)
+
+    try:
+        preference = UserPreference.objects.filter(user=request.user)
+        if preference.exists():
+            preference.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Preferences deleted successfully'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No preferences found'
+            }, status=404)
 
     except Exception as e:
         return JsonResponse({
