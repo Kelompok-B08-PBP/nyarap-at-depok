@@ -1352,3 +1352,79 @@ def save_preferences_flutter(request):
         'status': 'error',
         'message': 'Invalid request method'
     }, status=405)
+
+@require_http_methods(["GET"])
+def product_details_api(request, product_id):
+    try:
+        # Get user preferences
+        if request.user.is_authenticated:
+            try:
+                preference = UserPreference.objects.get(user=request.user)
+                breakfast_type = preference.preferred_breakfast_type
+                location = preference.preferred_location
+                price_range = preference.preferred_price_range
+            except UserPreference.DoesNotExist:
+                return JsonResponse({
+                    'error': 'Preferensi tidak ditemukan'
+                }, status=400)
+        else:
+            # For unauthenticated users, get from query params
+            breakfast_type = request.GET.get('breakfast_type')
+            location = request.GET.get('location')
+            price_range = request.GET.get('price_range')
+            
+            if not all([breakfast_type, location, price_range]):
+                return JsonResponse({
+                    'error': 'Preferensi tidak lengkap'
+                }, status=400)
+
+        # Get recommendations based on preferences
+        if breakfast_type == 'masih_bingung':
+            recommended_products = get_recommendations_for_undecided(location, price_range)
+        else:
+            recommended_products = get_recommendations(breakfast_type, location, price_range)
+
+        # Find the product with matching ID
+        try:
+            product_index = int(product_id) - 1
+            if 0 <= product_index < len(recommended_products):
+                product = recommended_products[product_index]
+                
+                # Format product data
+                formatted_product = {
+                    'id': int(product_id),
+                    'name': product.get('name', ''),
+                    'restaurant': product.get('restaurant', ''),
+                    'rating': float(product.get('rating', 0.0)),
+                    'operational_hours': product.get('operational_hours', ''),
+                    'location': product.get('location', ''),
+                    'display_price': product.get('display_price', 'Harga belum tersedia'),
+                    'image_url': product.get('image_url', '/api/placeholder/800/400'),
+                    'kecamatan': product.get('kecamatan', ''),
+                    'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title(),
+                }
+
+                # Add wishlist status if user is authenticated
+                if request.user.is_authenticated:
+                    formatted_product['is_in_wishlist'] = Wishlist.objects.filter(
+                        user=request.user,
+                        product_id=product_id
+                    ).exists()
+                else:
+                    formatted_product['is_in_wishlist'] = False
+
+                return JsonResponse(formatted_product)
+            else:
+                return JsonResponse({
+                    'error': 'Produk tidak ditemukan'
+                }, status=404)
+
+        except (ValueError, IndexError):
+            return JsonResponse({
+                'error': 'ID produk tidak valid'
+            }, status=400)
+
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
