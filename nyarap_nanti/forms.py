@@ -1,13 +1,14 @@
 from django import forms
-from .models import Collection
+from .models import WishlistNote
 
-class CollectionForm(forms.ModelForm):
+class WishlistNoteForm(forms.ModelForm):
     class Meta:
-        model = Collection
-        fields = ['name']
+        model = WishlistNote
+        fields = ['content']
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500',
-                'placeholder': 'Enter collection name',  # Anda juga bisa menambahkan placeholder
-            }),
+            'content': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm resize-none focus:ring-blue-500 focus:border-blue-500',
+                'rows': '3',
+                'placeholder': 'Add your notes here...'
+            })
         }

@@ -1,15 +1,14 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Wishlist, Collection, CollectionItem, Restaurant
-from .forms import CollectionForm
+from .models import Wishlist, Restaurant, WishlistNote
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Wishlist, Collection, CollectionItem, Restaurant, WishlistItem
+from .models import Wishlist, Restaurant, WishlistItem
 from main.views import get_product_by_id
 import pandas as pd
 import os
@@ -71,74 +70,30 @@ user_logged_in.connect(load_wishlist_to_session)
 
 @login_required
 def wishlist_page(request):
-    # Get items from database instead of session
-    wishlist_items = WishlistItem.objects.filter(user=request.user).values(
-        'product_id', 
-        'name',
-        'restaurant',
-        'category', 
-        'location',
-        'price',
-        'rating',
-        'operational_hours',
-        'image_url'
-    )
-    collections = Collection.objects.filter(wishlist__user=request.user)
-    
-    # Convert queryset to list of dictionaries with display price
+    wishlist_items = WishlistItem.objects.filter(user=request.user).prefetch_related('notes')
+    # collections = Collection.objects.filter(wishlist__user=request.user)
+
+    # Siapkan data untuk template
     wishlist_items_list = []
     for item in wishlist_items:
-        item_dict = dict(item)
-        item_dict['id'] = item['product_id']
-        item_dict['display_price'] = f"Rp {float(item['price']):,.0f}" if item['price'] else "Harga belum tersedia"
-        wishlist_items_list.append(item_dict)
+        wishlist_items_list.append({
+            'id': item.product_id,
+            'name': item.name,
+            'restaurant': item.restaurant,
+            'category': item.category,
+            'location': item.location,
+            'price': item.price,
+            'rating': item.rating,
+            'operational_hours': item.operational_hours,
+            'image_url': item.image_url,
+            'notes': list(item.notes.values('id', 'content', 'created_at', 'updated_at'))
+        })
 
     return render(request, 'wishlist.html', {
-        'collections': collections,
+        # 'collections': collections,
         'wishlist_items': wishlist_items_list,
     })
 
-
-
-@login_required
-def create_collection(request):
-    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        Collection.objects.create(wishlist=wishlist, name=name)
-        return redirect('nyarap_nanti:wishlist_page')
-    return render(request, 'create_collection.html')
-
-@login_required
-def collection_detail(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-    items = collection.items.all()
-    return render(request, 'collection_detail.html', {
-        'collection': collection,
-        'items': items
-    })
-
-@csrf_exempt
-@login_required
-def remove_collection(request, collection_id):
-    if request.method == "POST":
-        collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-        collection.delete()
-        return JsonResponse({"success": True})
-    return JsonResponse({"success": False}, status=400)
-
-@login_required
-def edit_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-    if request.method == 'POST':
-        form = CollectionForm(request.POST, instance=collection)
-        if form.is_valid():
-            form.save()
-            return redirect('nyarap_nanti:wishlist_page')
-    else:
-        form = CollectionForm(instance=collection)
-
-    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
 
 
 @login_required
@@ -191,36 +146,6 @@ def load_recommendations_from_excel():
         print(f"Error loading recommendations: {e}")
         return []
 
-@login_required
-def add_to_collection(request, collection_id):
-    if request.method == 'POST':
-        collection = get_object_or_404(Collection, id=collection_id, wishlist__user=request.user)
-        selected_items = json.loads(request.POST.get('selected_items', '[]'))
-        
-        # Get wishlist items for the current user
-        wishlist_items = WishlistItem.objects.filter(user=request.user, product_id__in=selected_items)
-        
-        for item in wishlist_items:
-            # Create or get restaurant
-            restaurant, _ = Restaurant.objects.get_or_create(
-                name=item.name,
-                defaults={
-                    'category': item.category,
-                    'location': item.location,
-                    'image_url': item.image_url
-                }
-            )
-            
-            # Create collection item if it doesn't exist
-            CollectionItem.objects.get_or_create(
-                collection=collection,
-                restaurant=restaurant
-            )
-        
-       
-        return redirect('nyarap_nanti:collection_detail', collection_id=collection_id)
-    
-    return redirect('nyarap_nanti:wishlist_page')
 
 
 @login_required
@@ -248,3 +173,88 @@ def wishlist_json(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+@login_required
+def add_note(request, product_id):
+    wishlist_item = get_object_or_404(WishlistItem, product_id=product_id, user=request.user)
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if not content:
+            return JsonResponse({'success': False, 'error': 'Note content cannot be empty'}, status=400)
+
+        # Simpan catatan ke database
+        note = WishlistNote.objects.create(
+            wishlist_item=wishlist_item,
+            content=content
+        )
+
+        return JsonResponse({
+            'success': True,
+            'note_id': note.id,
+            'content': note.content,
+            'created_at': note.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'updated_at': note.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return JsonResponse({'success': False}, status=400)
+
+
+
+@login_required
+def update_note(request, note_id):
+    note = get_object_or_404(WishlistNote, id=note_id, wishlist_item__user=request.user)
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if not content:
+            return JsonResponse({'success': False, 'error': 'Note content cannot be empty'}, status=400)
+
+        note.content = content
+        note.save()
+
+        return JsonResponse({
+            'success': True,
+            'note_id': note.id,
+            'content': note.content,
+            'updated_at': note.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+def delete_note(request, note_id):
+    note = get_object_or_404(WishlistNote, id=note_id, wishlist_item__user=request.user)
+    if request.method == 'POST':
+        note.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+def notes_json(request, product_id=None):
+    try:
+        # Base query untuk notes milik user yang login
+        notes_query = WishlistNote.objects.filter(wishlist_item__user=request.user)
+        
+        # Filter berdasarkan product_id jika ada
+        if product_id:
+            notes_query = notes_query.filter(wishlist_item__product_id=product_id)
+
+        # Serialisasi data notes ke JSON
+        data = [
+            {
+                'id': note.id,
+                'content': note.content,
+                'created_at': note.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': note.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'product_id': note.wishlist_item.product_id,
+                'product_name': note.wishlist_item.name
+            }
+            for note in notes_query
+        ]
+
+        return JsonResponse({'notes': data}, safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+

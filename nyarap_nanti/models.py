@@ -33,17 +33,13 @@ class WishlistItem(models.Model):
     def __str__(self):
         return self.name
 
-
-class Collection(models.Model):
-    wishlist = models.ForeignKey(Wishlist, related_name="collections", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.name} - {self.wishlist.user.username}"
-
-class CollectionItem(models.Model):
-    collection = models.ForeignKey(Collection, related_name="items", on_delete=models.CASCADE)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    
+class WishlistNote(models.Model):
+    wishlist_item = models.ForeignKey(WishlistItem, on_delete=models.CASCADE, related_name='notes')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.restaurant.name} in {self.collection.name}"
+        return f"Note for {self.wishlist_item.name}"
+
