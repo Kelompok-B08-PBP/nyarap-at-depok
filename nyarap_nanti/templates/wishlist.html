@@ -77,55 +77,66 @@
                 {% endfor %}
             </div>
         </div>
-
                 <!-- Wishlist Items Section -->
-                <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {% for product in wishlist_items %}
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
-                            <div class="product-category">{{ product.category }}</div>
+        <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in wishlist_items %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-300 flex items-center justify-center text-gray-500">
+                            No Image
                         </div>
-                        <div class="product-content">
-                            <div class="product-header">
-                                <h3 class="restaurant-name">{{ product.name }}</h3>
-                                <div class="product-rating">
-                                    <span class="rating-star">★</span>
-                                    <span class="rating-value">{{ product.rating|floatformat:1 }}</span>
-                                </div>
-                            </div>
-                            <p class="menu-name">{{ product.restaurant }}</p>
-                            <div class="product-info">
-                                <div class="location">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
-                                        <circle cx="12" cy="10" r="3"></circle>
-                                    </svg>
-                                    <span>Kec. {{ product.location }}</span>
-                                </div>
-                                <div class="hours">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <path d="M12 6v6l4 2"></path>
-                                    </svg>
-                                    <span>{{ product.operational_hours }}</span>
-                                </div>
-                            </div>
-                            <div class="product-footer">
-                                <div class="price">Rp {{ product.price }}</div>
-                                <a href="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" class="details-button">
-                                    Lihat Detail
-                                </a>
-                                <form action="{% url 'nyarap_nanti:remove_from_wishlist' product.id %}" method="post" class="details-button">
-                                    {% csrf_token %}
-                                    <button type="submit">Remove</button>
-                                </form>
-                            </div>
+                    {% endif %}
+                </div>               
+                <div class="product-content">
+                    <div class="product-header">
+                        <h3 class="restaurant-name">{{ product.name }}</h3>
+                        <div class="product-rating">
+                            <span class="rating-star">★</span>
+                            <span class="rating-value">{{ product.rating|floatformat:1 }}</span>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>      
-        
+                    <p class="menu-name">{{ product.restaurant }}</p>
+                    <div class="product-info">
+                        <div class="location">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>{{ product.location }}</span>
+                        </div>
+                        <div class="hours">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            <span>{{ product.operational_hours }}</span>
+                        </div>
+                    </div>
+                    <div class="product-footer">
+                        <div class="price">Rp {{ product.price|floatformat:0 }}</div>
+                        <div class="action-buttons flex flex-col gap-2"> <!-- Changed to flex-col -->
+                            <form action="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" method="get" class="details-button">
+                                <button type="submit" class="view-detail-btn">Lihat Detail</button>
+                            </form>
+                            <form action="{% url 'nyarap_nanti:remove_from_wishlist' product.id %}" method="post" class="details-button">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-btn">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            {% empty %}
+            <!-- Tampilkan pesan jika wishlist kosong -->
+            <div class="col-span-4 text-center">
+                <p class="text-gray-500 text-lg">Wishlist Anda kosong. Tambahkan produk favorit Anda!</p>
+            </div>
+            {% endfor %}
+        </div>
         
 
         <!-- Delete Collection Confirmation Modal -->
@@ -197,6 +208,8 @@
         transition: all 0.2s ease-in-out;
         height: 100%;
         border: 1px solid #f0f0f0;
+        padding: 1rem; /* Added overall padding */
+        margin: 0.5rem;
     }
 
     .product-card:hover {
@@ -237,7 +250,7 @@
     }
 
     .product-content {
-        padding: 1.25rem;
+        padding: 1.5rem;
     }
 
     .product-header {
@@ -303,13 +316,14 @@
     }
 
     .product-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 1.25rem;
-        padding-top: 1.25rem;
-        border-top: 1px solid #e5e7eb;
-    }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e5e7eb;
+    gap: 1rem; /* Added gap */
+    }   
 
     .price {
         font-weight: 700;
@@ -322,23 +336,28 @@
         gap: 0.5rem;
     }
 
-    .details-button a,
+    /* .details-button a,
     .details-button button {
-        background: #F97316;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: #F97316;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap; /* Prevents button text from wrapping */
+    /* } */ */
 
     .details-button a:hover,
     .details-button button:hover {
-        background: #EA580C;
+    background: #EA580C;
+    }   
+
+    .action-buttons {
+    display: flex;
+    gap: 0.75rem; /* Space between buttons */
     }
 
     /* Grid layout improvements */
@@ -346,6 +365,41 @@
         gap: 1.5rem;
         padding: 1.5rem 0;
     }
+
+    .view-detail-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: #F97316;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    }
+
+    .remove-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        background: #EF4444;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        width: 100%;
+    }
+
+    .view-detail-btn:hover {
+        background: #EA580C;
+    }
+
+    .remove-btn:hover {
+        background: #DC2626;
+    }
+
 
     @media (max-width: 640px) {
         .wishlist-items {
@@ -356,3 +410,8 @@
     }
 </style>
 {% endblock %}
+
+
+<!-- <a href="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" class="details-button">
+    Lihat Detail
+</a> -->

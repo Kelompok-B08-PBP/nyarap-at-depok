@@ -12,5 +12,8 @@ urlpatterns = [
     path('wishlist/collection/remove/<int:collection_id>/', views.remove_collection, name='remove_collection'),
     path('wishlist/edit/<int:collection_id>/', views.edit_collection, name='edit_collection'),  # URL untuk edit koleksi
     path('wishlist/add/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
-    path('wishlist/remove/<int:restaurant_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('wishlist/remove/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('collection/<int:collection_id>/add/', views.add_to_collection, name='add_to_collection'),
+    path('wishlist/json/', views.wishlist_json, name='wishlist_json'),
+    # path('collection/<int:collection_id>/add-selected/', views.add_selected_to_collection, name='add_selected_to_collection'),
 ]

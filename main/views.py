@@ -603,42 +603,54 @@ def generate_product_id(name, restaurant, location):
 def get_product_by_id(product_id):
     try:
         all_recommendations = load_recommendations_from_excel()
+        found_product = None
         
+        # Counter for numeric ID matching
+        current_id = 1
+        
+        # Search through all categories and locations
         for category, locations in all_recommendations.items():
             for location, items in locations.items():
                 for item in items:
-                    # Generate a consistent positive ID for the item
-                    item_id = generate_product_id(item['name'], item['restaurant'], location)
+                    # Try both numeric ID and hash ID matching
+                    hash_id = generate_product_id(item['name'], item['restaurant'], location)
                     
-                    if item_id == product_id:
-                        # Add additional fields needed for display
-                        item['category'] = category
-                        item['kecamatan'] = location
+                    if product_id == current_id or product_id == hash_id:
+                        found_product = item.copy()
+                        found_product.update({
+                            'id': current_id,  # Keep the numeric ID
+                            'category': category,
+                            'kecamatan': location,
+                            'name': item['name'],
+                            'restaurant': item['restaurant'],
+                            'rating': float(str(item.get('rating', '0')).replace(',', '.')),
+                            'operational_hours': item.get('operational_hours', ''),
+                            'location': item.get('location', ''),
+                            'image_url': item.get('Link Foto', '/static/data/images/placeholder.png'),  # Ambil dari Link Foto
+                        })
                         
-                        # Format price display
+                        # Handle price display
                         try:
                             if isinstance(item['price'], (int, float)):
-                                item['display_price'] = f"Rp {float(item['price']):,.0f}"
+                                found_product['display_price'] = f"Rp {float(item['price']):,.0f}"
                             else:
                                 price_str = str(item['price']).replace('Rp', '').replace(',', '').replace('.', '').strip()
                                 if price_str and price_str.isdigit():
-                                    item['display_price'] = f"Rp {float(price_str):,.0f}"
+                                    found_product['display_price'] = f"Rp {float(price_str):,.0f}"
                                 else:
-                                    item['display_price'] = "Harga belum tersedia"
+                                    found_product['display_price'] = "Harga belum tersedia"
                         except (ValueError, KeyError):
-                            item['display_price'] = "Harga belum tersedia"
-                        
-                        # Ensure rating is properly formatted
-                        try:
-                            item['rating'] = float(str(item['rating']).replace(',', '.'))
-                        except (ValueError, KeyError):
-                            item['rating'] = 0.0
+                            found_product['display_price'] = "Harga belum tersedia"
                             
-                        return item
+                        return found_product
+                    
+                    current_id += 1
+        
         return None
         
     except Exception as e:
         return None
+
 
 def get_recommendations_by_category(category):
     try:
@@ -830,7 +842,7 @@ def get_product_by_id(product_id):
                             'rating': float(str(item.get('rating', '0')).replace(',', '.')),
                             'operational_hours': item.get('operational_hours', ''),
                             'location': item.get('location', ''),
-                             'image_url': item.get('image_url', '/api/placeholder/800/400'),
+                            'image_url': item.get('image_url', '/api/placeholder/800/400'),
                         })
                         
                         # Handle price display
@@ -1352,3 +1364,43 @@ def save_preferences_flutter(request):
         'status': 'error',
         'message': 'Invalid request method'
     }, status=405)
+
+@csrf_exempt
+def get_user_data(request):
+    if request.user.is_authenticated:
+        try:
+            # Get user preferences if they exist
+            preferences = UserPreference.objects.filter(user=request.user).first()
+            
+            # Convert preferences to JSON format if they exist
+            preferences_data = None
+            if preferences:
+                preferences_data = {
+                    "model": "main.userpreference",
+                    "pk": str(preferences.pk),
+                    "fields": {
+                        "user": request.user.id,
+                        "preferred_location": preferences.preferred_location,
+                        "preferred_breakfast_type": preferences.preferred_breakfast_type,
+                        "preferred_price_range": preferences.preferred_price_range,
+                        "created_at": preferences.created_at.isoformat()
+                    }
+                }
+            
+            return JsonResponse({
+                "status": "success",
+                "id": request.user.id,
+                "username": request.user.username,
+                "preferences": preferences_data
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                "status": "error",
+                "message": str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        "status": "error",
+        "message": "User not authenticated"
+    }, status=401)

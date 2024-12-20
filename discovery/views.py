@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from .models import PostEntry
 from .forms import PostEntryForm
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -27,14 +27,28 @@ def show_post(request):
 
 @login_required 
 def edit_post(request, id):
-    post = get_object_or_404(PostEntry, id=id, user=request.user)  # Hanya izinkan edit jika user adalah pemilik
-    form = PostEntryForm(request.POST or None, instance=post)
+    post = PostEntry.objects.get(id=id)
+    form = PostEntryForm(instance=post)
 
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect('discovery:show_post')
+    if request.method == "POST":
+        form = PostEntryForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            # Check if request is AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Post updated successfully!'
+                })
+            return redirect('main:show_main')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
 
-    context = {'form': form, 'post': post}  # Tambahkan post ke context
+    context = {'form': form, 'post': post}
     return render(request, "edit_post.html", context)
 
 @login_required 
