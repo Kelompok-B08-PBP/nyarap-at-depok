@@ -1043,6 +1043,7 @@ def delete_comment(request, comment_id):
     comment.delete()
     return JsonResponse({'message': 'Comment deleted successfully!'})
 
+
 @require_http_methods(["POST"])
 @csrf_exempt
 def get_recommendations_json(request):
@@ -1364,43 +1365,3 @@ def save_preferences_flutter(request):
         'status': 'error',
         'message': 'Invalid request method'
     }, status=405)
-
-@csrf_exempt
-def get_user_data(request):
-    if request.user.is_authenticated:
-        try:
-            # Get user preferences if they exist
-            preferences = UserPreference.objects.filter(user=request.user).first()
-            
-            # Convert preferences to JSON format if they exist
-            preferences_data = None
-            if preferences:
-                preferences_data = {
-                    "model": "main.userpreference",
-                    "pk": str(preferences.pk),
-                    "fields": {
-                        "user": request.user.id,
-                        "preferred_location": preferences.preferred_location,
-                        "preferred_breakfast_type": preferences.preferred_breakfast_type,
-                        "preferred_price_range": preferences.preferred_price_range,
-                        "created_at": preferences.created_at.isoformat()
-                    }
-                }
-            
-            return JsonResponse({
-                "status": "success",
-                "id": request.user.id,
-                "username": request.user.username,
-                "preferences": preferences_data
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                "status": "error",
-                "message": str(e)
-            }, status=400)
-    
-    return JsonResponse({
-        "status": "error",
-        "message": "User not authenticated"
-    }, status=401)
