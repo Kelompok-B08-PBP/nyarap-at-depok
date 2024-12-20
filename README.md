@@ -59,7 +59,7 @@ Pada modul **Nyarap Activity**, pengguna dapat memposting aktivitas dan status t
 Pada modul **Nyarap Detailer**, pengguna dapat melihat informasi lengkap terkait tempat sarapan, termasuk menu, jam operasional, alamat, foto, ulasan pengguna, dan rating. Modul ini juga menampilkan aplikasi yang dapat digunakan untuk pemesanan online jika tersedia. Pengguna juga dapat menambahkan informasi tambahan pada setiap produk di tempat sarapan.
 
 ### 4. **Nyarap Nanti ❤️** (Wishlist)
-Pada modul **Nyarap Favorit**, pengguna dapat menyimpan tempat sarapan favorit dalam wishlist pribadi. Pengguna juga dapat merencanakan kunjungan dengan fitur kalender yang membantu mengatur jadwal sarapan berikutnya.
+Pada modul **Nyarap Nanti**, pengguna dapat menyimpan tempat sarapan favorit dalam wishlist pribadi. Selain itu, pengguna dapat menambahkan catatan khusus pada setiap lokasi dalam wishlist mereka, menjadikan pengalaman lebih personal dan bermakna.
 
 ### 5. **Nyarap Ulasan 📝** (Reviews)
 Pada modul **Nyarap Ulasan**, pengguna dapat memberikan ulasan dan rating terkait tempat sarapan yang telah dikunjungi. Ulasan ini akan membantu pengguna lain dalam memilih tempat sarapan terbaik.
