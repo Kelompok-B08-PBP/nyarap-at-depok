@@ -1,3 +1,5 @@
+
+import json
 from django.shortcuts import render, redirect, reverse 
 from .forms import ProductForm
 from .models import Product
@@ -52,34 +54,6 @@ def add_product_review_ajax(request,id):
         'date_added': new_review.date_added.strftime("%Y-%m-%d"),
     })
 
-def add_product_review_ajax_all(request):
-    # Mengambil dan membersihkan data form dari permintaan POST
-    restaurant_name = strip_tags(request.POST.get("restaurant_name"))
-    food_name = strip_tags(request.POST.get("food_name"))
-    rating = int(strip_tags(request.POST.get("rating")))
-    review_text = strip_tags(request.POST.get("review"))
-    user = request.user
-
-    # Membuat dan menyimpan instance baru dari Product sebagai review
-    new_review = Product(
-        restaurant_name=restaurant_name,
-        food_name=food_name,
-        rating=rating,
-        review=review_text,
-        user=user,
-    )
-    new_review.save()
-
-    # Mengembalikan respon dalam bentuk JSON yang berisi detail review baru
-    return JsonResponse({
-        'id': new_review.id,
-        'restaurant_name': new_review.restaurant_name,
-        'food_name': new_review.food_name,
-        'rating': new_review.rating,
-        'review': new_review.review,
-        'date_added': new_review.date_added.strftime("%Y-%m-%d"),
-    })
-
 # Mengembalikan data produk dalam format XML untuk produk pengguna yang sedang login
 def show_xml(request):
     data = Product.objects.filter(user=request.user)
@@ -100,26 +74,197 @@ def show_json_by_id(request, id):
     data = Product.objects.filter(pk=id)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
-# Menghapus review produk berdasarkan ID dan mengarahkan kembali ke halaman daftar review
-def delete_product_review(request, id):
-    review = Product.objects.get(pk=id)
-    review.delete()
-    # Check if this is an AJAX request
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'status': 'success'})
-    # Regular form submission - redirect
-    return HttpResponseRedirect(reverse('reviews:show_reviews'))
-
-# Menampilkan form untuk mengedit review produk berdasarkan ID, lalu menyimpan perubahan jika valid
-def edit_product_review(request, id):
-    review = Product.objects.get(pk=id)
+@csrf_exempt
+def add_product_review_ajax_all(request):
     if request.method == 'POST':
-        form = ProductForm(request.POST, instance=review)
-        if form.is_valid():
-            form.save()
-            return redirect('reviews:show_reviews') 
-    else:
-        form = ProductForm(instance=review)
+        try:
+            # Cek jika user terautentikasi
+            if not request.user.is_authenticated:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'User not authenticated'
+                }, status=403)
 
-    return render(request, 'edit_product_review.html', {'form': form, 'review': review})
+            # Parse data from JSON if it's in request.body
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = request.POST
+            
+            # Validasi data
+            restaurant_name = data.get('restaurant_name')
+            food_name = data.get('food_name')
+            rating = int(data.get('rating'))
+            review_text = data.get('review')
 
+            if not all([restaurant_name, food_name, rating, review_text]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Missing required fields'
+                }, status=400)
+
+            # Buat review baru
+            new_review = Product.objects.create(
+                restaurant_name=restaurant_name,
+                food_name=food_name,
+                rating=rating,
+                review=review_text,
+                user=request.user,
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'data': {
+                    "model": "reviews.product",
+                    "pk": new_review.id,
+                    "fields": {
+                        "user": new_review.user.id,
+                        "restaurant_name": new_review.restaurant_name,
+                        "food_name": new_review.food_name,
+                        "review": new_review.review,
+                        "rating": new_review.rating,
+                        "date_added": new_review.date_added.strftime("%Y-%m-%d"),
+                        "product_identifier": ""
+                    }
+                }
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Method not allowed'
+    }, status=405)
+
+@csrf_exempt
+def delete_product_review(request, id):
+    if request.method == 'POST':  # Changed from DELETE to POST
+        try:
+            review = Product.objects.get(pk=id)
+            if review.user == request.user:
+                review.delete()
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Not authorized to delete this review'
+                }, status=403)
+        except Product.DoesNotExist:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Review not found'
+            }, status=404)
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Method not allowed'
+    }, status=405)
+
+@csrf_exempt
+def edit_product_review(request, id):
+    try:
+        review = Product.objects.get(pk=id)
+        
+        # Handle GET request untuk render form edit
+        if request.method == 'GET':
+            # Untuk web view
+            if request.headers.get('Accept', '').find('text/html') != -1:
+                form = ProductForm(instance=review)
+                return render(request, 'edit_product_review.html', {
+                    'form': form, 
+                    'review': review
+                })
+            # Untuk API/Flutter
+            else:
+                return JsonResponse({
+                    'status': 'success',
+                    'data': {
+                        "model": "reviews.product",
+                        "pk": review.id,
+                        "fields": {
+                            "user": review.user.id,
+                            "restaurant_name": review.restaurant_name,
+                            "food_name": review.food_name,
+                            "review": review.review,
+                            "rating": review.rating,
+                            "date_added": review.date_added.strftime("%Y-%m-%d"),
+                            "product_identifier": ""
+                        }
+                    }
+                })
+                
+        # Handle POST request untuk update data
+        elif request.method == 'POST':
+            if request.user != review.user:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Not authorized to edit this review'
+                }, status=403)
+
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = request.POST
+
+            review.restaurant_name = data.get('restaurant_name', review.restaurant_name)
+            review.food_name = data.get('food_name', review.food_name)
+            review.rating = int(data.get('rating', review.rating))
+            review.review = data.get('review', review.review)
+            review.save()
+
+            # Untuk web view
+            if request.headers.get('Accept', '').find('text/html') != -1:
+                return redirect('reviews:show_reviews')
+            # Untuk API/Flutter
+            else:
+                return JsonResponse({
+                    'status': 'success',
+                    'data': {
+                        "model": "reviews.product",
+                        "pk": review.id,
+                        "fields": {
+                            "user": review.user.id,
+                            "restaurant_name": review.restaurant_name,
+                            "food_name": review.food_name,
+                            "review": review.review,
+                            "rating": review.rating,
+                            "date_added": review.date_added.strftime("%Y-%m-%d"),
+                            "product_identifier": ""
+                        }
+                    }
+                })
+
+    except Product.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Review not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Method not allowed'
+    }, status=405)
+
+def get_reviews(request):
+    reviews = Product.objects.all()  # Ganti reviews.objects jadi Product.objects
+    review_data = serializers.serialize('json', reviews)
+    return HttpResponse(review_data, content_type="application/json")
+
+@login_required
+def get_user_id(request):
+    return JsonResponse({
+        'user_id': request.user.id,
+        'status': 'success'
+    })
+
+@login_required
+def get_reviews_for_product(request, product_id):
+    reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
+    return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")

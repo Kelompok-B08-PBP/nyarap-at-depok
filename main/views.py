@@ -20,7 +20,8 @@ import hashlib
 from nyarap_nanti.models import Wishlist
 from django.views.decorators.http import require_POST
 from reviews.models import Product
-
+from django.contrib.auth.models import User
+import json
 
 def load_recommendations_from_excel():
     try:
@@ -218,6 +219,14 @@ def register(request):
     context = {'form':form}
     return render(request, 'register.html', context)
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+import datetime
+
 def login_user(request):
    if request.method == 'POST':
       form = AuthenticationForm(data=request.POST)
@@ -228,6 +237,8 @@ def login_user(request):
         response = HttpResponseRedirect(reverse("main:show_main"))
         response.set_cookie('last_login', str(datetime.datetime.now()))
         return response
+      else:
+          messages.error(request, "Invalid username or password. Please try again.")
 
    else:
       form = AuthenticationForm(request)
@@ -239,6 +250,7 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return redirect('main:login')
+
 
 def recommendations(request):
     if request.method == 'POST':
@@ -591,42 +603,54 @@ def generate_product_id(name, restaurant, location):
 def get_product_by_id(product_id):
     try:
         all_recommendations = load_recommendations_from_excel()
+        found_product = None
         
+        # Counter for numeric ID matching
+        current_id = 1
+        
+        # Search through all categories and locations
         for category, locations in all_recommendations.items():
             for location, items in locations.items():
                 for item in items:
-                    # Generate a consistent positive ID for the item
-                    item_id = generate_product_id(item['name'], item['restaurant'], location)
+                    # Try both numeric ID and hash ID matching
+                    hash_id = generate_product_id(item['name'], item['restaurant'], location)
                     
-                    if item_id == product_id:
-                        # Add additional fields needed for display
-                        item['category'] = category
-                        item['kecamatan'] = location
+                    if product_id == current_id or product_id == hash_id:
+                        found_product = item.copy()
+                        found_product.update({
+                            'id': current_id,  # Keep the numeric ID
+                            'category': category,
+                            'kecamatan': location,
+                            'name': item['name'],
+                            'restaurant': item['restaurant'],
+                            'rating': float(str(item.get('rating', '0')).replace(',', '.')),
+                            'operational_hours': item.get('operational_hours', ''),
+                            'location': item.get('location', ''),
+                            'image_url': item.get('Link Foto', '/static/data/images/placeholder.png'),  # Ambil dari Link Foto
+                        })
                         
-                        # Format price display
+                        # Handle price display
                         try:
                             if isinstance(item['price'], (int, float)):
-                                item['display_price'] = f"Rp {float(item['price']):,.0f}"
+                                found_product['display_price'] = f"Rp {float(item['price']):,.0f}"
                             else:
                                 price_str = str(item['price']).replace('Rp', '').replace(',', '').replace('.', '').strip()
                                 if price_str and price_str.isdigit():
-                                    item['display_price'] = f"Rp {float(price_str):,.0f}"
+                                    found_product['display_price'] = f"Rp {float(price_str):,.0f}"
                                 else:
-                                    item['display_price'] = "Harga belum tersedia"
+                                    found_product['display_price'] = "Harga belum tersedia"
                         except (ValueError, KeyError):
-                            item['display_price'] = "Harga belum tersedia"
-                        
-                        # Ensure rating is properly formatted
-                        try:
-                            item['rating'] = float(str(item['rating']).replace(',', '.'))
-                        except (ValueError, KeyError):
-                            item['rating'] = 0.0
+                            found_product['display_price'] = "Harga belum tersedia"
                             
-                        return item
+                        return found_product
+                    
+                    current_id += 1
+        
         return None
         
     except Exception as e:
         return None
+
 
 def get_recommendations_by_category(category):
     try:
@@ -713,7 +737,7 @@ def product_details(request, category, product_id):
         is_in_wishlist = False
         
         try:
-            reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
+            reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
             if request.user.is_authenticated:
                 is_in_wishlist = Wishlist.objects.filter(
                     user=request.user,
@@ -818,7 +842,7 @@ def get_product_by_id(product_id):
                             'rating': float(str(item.get('rating', '0')).replace(',', '.')),
                             'operational_hours': item.get('operational_hours', ''),
                             'location': item.get('location', ''),
-                             'image_url': item.get('image_url', '/api/placeholder/800/400'),
+                            'image_url': item.get('image_url', '/api/placeholder/800/400'),
                         })
                         
                         # Handle price display
@@ -868,7 +892,8 @@ def product_details_recommendation(request, product_id):
             recommended_products = get_recommendations_for_undecided(location, price_range)
         else:
             recommended_products = get_recommendations(breakfast_type, location, price_range)
-        
+
+        # Find the product with matching ID
         try:
             product_index = int(product_id) - 1
             if 0 <= product_index < len(recommended_products):
@@ -888,21 +913,50 @@ def product_details_recommendation(request, product_id):
                     'category': product.get('category', breakfast_type).title() if breakfast_type != 'masih_bingung' else product.get('category', '').title()
                 }
 
+                # Get reviews and wishlist status
+                reviews = []
+                is_in_wishlist = False
+                try:
+                    reviews = reviews.objects.filter(product_id=product_id).order_by('-created_at')
+                    if request.user.is_authenticated:
+                        is_in_wishlist = Wishlist.objects.filter(
+                            user=request.user,
+                            product_id=product_id
+                        ).exists()
+                except Exception as e:
+                    pass  # Handle silently as in original code
+
+                # Get comments
+                comments = Comment.objects.filter(product_identifier=product_id)
+
                 context = {
                     'product': formatted_product,
                     'is_authenticated': request.user.is_authenticated,
                     'name': request.user.username if request.user.is_authenticated else None,
+                    'reviews': reviews,
+                    'comments': comments,
+                    'show_reviews': True,
+                    'user': request.user,
+                    'is_in_wishlist': is_in_wishlist,
+                    'product_id': product_id,
+                    'return_url': request.GET.get('return_url', 'main:recommendation_list'),
                     'source': 'recommendations'
                 }
-                
+
+                # Check if request is coming from nyarap_nanti
+                if 'nyarap_nanti' in request.GET.get('source', ''):
+                    return redirect('nyarap_nanti:product_details', 
+                                 category=formatted_product['category'].lower(), 
+                                 product_id=product_id)
+
                 return render(request, 'product_details.html', context)
             else:
                 raise ValueError('Product index out of range')
         except (ValueError, IndexError):
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:recommendation_list')
-            
     except Exception as e:
+        print(f"Error in product_details_recommendation: {str(e)}")
         messages.error(request, f'Terjadi kesalahan saat memuat detail produk: {str(e)}')
         return redirect('main:recommendation_list')
     
@@ -988,3 +1042,397 @@ def delete_comment(request, comment_id):
     comment = Comment.objects.get(id=comment_id)
     comment.delete()
     return JsonResponse({'message': 'Comment deleted successfully!'})
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def get_recommendations_json(request):
+    if request.method == 'POST':
+        try:
+            # Parse request data
+            data = json.loads(request.body)
+            print("Received data:", data)  # Debug print
+
+            # Extract parameters
+            breakfast_type = data.get('breakfast_type', '').lower().strip()
+            location = data.get('location', '').title().strip()
+            price_range = data.get('price_range', '')
+
+            # Save preferences if user is authenticated
+            if request.user.is_authenticated:
+                try:
+                    # Update or create preference
+                    preference, created = UserPreference.objects.update_or_create(
+                        user=request.user,
+                        defaults={
+                            'preferred_breakfast_type': breakfast_type,
+                            'preferred_location': location,
+                            'preferred_price_range': price_range,
+                        }
+                    )
+                    print(f"Preferences {'created' if created else 'updated'} for user {request.user.username}")
+                except Exception as e:
+                    print(f"Error saving preferences: {e}")
+            else:
+                # Store preferences in session for non-authenticated users
+                request.session['preferred_breakfast_type'] = breakfast_type
+                request.session['preferred_location'] = location
+                request.session['preferred_price_range'] = price_range
+                print("Preferences saved to session")
+
+            print(f"Looking for: {breakfast_type} in {location} with price range {price_range}")
+            
+            # Get recommendations from Excel
+            recommendations = []
+            df = pd.read_excel(settings.EXCEL_DATA_PATH)
+            
+            # Convert price strings to numeric values for comparison
+            df['price_value'] = df['Harga'].apply(lambda x: float(''.join(c for c in str(x) if c.isdigit() or c == '.')) if pd.notna(x) and str(x).strip() else 0)
+
+            # Define price range filters based on PRICE_CHOICES
+            price_filters = {
+                '0-15000': (0, 15000),
+                '15000-25000': (15000, 25000),
+                '25000-50000': (25000, 50000),
+                '50000-100000': (50000, 100000),
+                '100000+': (100000, float('inf'))
+            }
+
+            # Get price range bounds
+            min_price, max_price = price_filters.get(price_range, (0, float('inf')))
+
+            # Filter dataframe with all conditions
+            mask = (
+                (df['Kategori'].str.lower().str.strip() == breakfast_type) & 
+                (df['Kecamatan'].str.strip() == location) &
+                (df['price_value'] >= min_price) &
+                (df['price_value'] < max_price if max_price != float('inf') else df['price_value'] >= min_price)
+            )
+            filtered_df = df[mask]
+
+            # Convert to list of dicts
+            for _, row in filtered_df.iterrows():
+                try:
+                    price = str(row['Harga'])
+                    price_value = float(''.join(c for c in price if c.isdigit() or c == '.')) if price and price.strip() else 0
+                    
+                    recommendations.append({
+                        'name': str(row['Nama Produk']).strip(),
+                        'restaurant': str(row['nama_restoran']).strip(),
+                        'price': f"Rp {price_value:,.0f}" if price_value > 0 else "Harga belum tersedia",
+                        'rating': float(str(row['Rating']).replace(',', '.')) if pd.notna(row['Rating']) else 0.0,
+                        'image_url': str(row['Link Foto']) if pd.notna(row['Link Foto']) else '/api/placeholder/400/320',
+                        'location': str(row['Lokasi']).strip() if pd.notna(row['Lokasi']) else '',
+                        'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else ''
+                    })
+                except Exception as e:
+                    print(f"Error processing row: {e}")
+                    continue
+
+            print(f"Found {len(recommendations)} recommendations")
+            
+            return JsonResponse({
+                'status': 'success',
+                'recommendations': recommendations
+            })
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
+    
+def preferences_api(request):
+    try:
+        if request.method == 'GET':
+            # Get existing preferences
+            response_data = {
+                'breakfast_choices': {
+                    'masih_bingung': 'Masih Bingung',
+                    'nasi': 'Nasi',
+                    'roti': 'Roti',
+                    'lontong': 'Lontong',
+                    'cemilan': 'Cemilan',
+                    'minuman': 'Minuman',
+                    'mie': 'Mie',
+                    'makanan_sehat': 'Sarapan Sehat',
+                    'bubur': 'Bubur',
+                    'makanan_berat': 'Sarapan Berat',
+                },
+                'location_choices': dict(UserPreference.KECAMATAN_CHOICES),
+                'price_choices': dict(UserPreference.PRICE_CHOICES),
+                'current_preferences': None,
+                'is_authenticated': request.user.is_authenticated
+            }
+
+            # Add user data if authenticated
+            if request.user.is_authenticated:
+                try:
+                    preference = UserPreference.objects.get(user=request.user)
+                    response_data['current_preferences'] = {
+                        'breakfast_category': preference.preferred_breakfast_type,
+                        'district_category': preference.preferred_location,
+                        'price_range': preference.preferred_price_range,
+                    }
+                except UserPreference.DoesNotExist:
+                    pass
+
+            return JsonResponse({
+                'status': 'success',
+                'data': response_data
+            })
+
+        elif request.method == 'POST':
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            breakfast_category = data.get('breakfast_category')
+            district_category = data.get('district_category')
+            price_range = data.get('price_range')
+
+            # Validate required fields
+            if not all([breakfast_category, district_category, price_range]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Missing required fields',
+                    'required_fields': ['breakfast_category', 'district_category', 'price_range']
+                }, status=400)
+
+            try:
+                if request.user.is_authenticated:
+                    # Update or create preferences for authenticated user
+                    preference, created = UserPreference.objects.update_or_create(
+                        user=request.user,
+                        defaults={
+                            'preferred_breakfast_type': breakfast_category,
+                            'preferred_location': district_category,
+                            'preferred_price_range': price_range,
+                        }
+                    )
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'data': {
+                            'message': 'Preferences updated successfully',
+                            'preferences': {
+                                'breakfast_category': preference.preferred_breakfast_type,
+                                'district_category': preference.preferred_location,
+                                'price_range': preference.preferred_price_range,
+                            }
+                        }
+                    })
+                else:
+                    # For non-authenticated users, store in session
+                    request.session['preferred_breakfast_type'] = breakfast_category
+                    request.session['preferred_location'] = district_category
+                    request.session['preferred_price_range'] = price_range
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'data': {
+                            'message': 'Session preferences saved successfully',
+                            'preferences': {
+                                'breakfast_category': breakfast_category,
+                                'district_category': district_category,
+                                'price_range': price_range,
+                            }
+                        }
+                    })
+
+            except Exception as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                }, status=500)
+
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed'
+        }, status=405)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@csrf_exempt
+@login_required
+def get_user_data(request):
+    try:
+        user = request.user
+        data = {
+            'status': 'success',
+            'data': {
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_authenticated': True,
+                }
+            }
+        }
+
+        try:
+            preference = UserPreference.objects.get(user=user)
+            data['data']['preferences'] = {
+                'id': str(preference.id),  # Include the UUID
+                'breakfast_category': preference.preferred_breakfast_type,
+                'district_category': preference.preferred_location,
+                'price_range': preference.preferred_price_range,
+            }
+        except UserPreference.DoesNotExist:
+            data['data']['preferences'] = None
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    
+@require_http_methods(["POST"])
+@csrf_exempt
+def delete_preferences_flutter(request):
+    """
+    Endpoint to delete user preferences
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Authentication required'
+        }, status=401)
+
+    try:
+        preference = UserPreference.objects.filter(user=request.user)
+        if preference.exists():
+            preference.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Preferences deleted successfully'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No preferences found'
+            }, status=404)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    
+
+
+@csrf_exempt
+@login_required
+def save_preferences_flutter(request):
+    if request.method == 'POST':
+        try:
+            # Data sudah otomatis di-decode oleh Django
+            data = request.POST
+            # Atau jika mengirim sebagai JSON:
+            # data = json.loads(request.body)
+            
+            preference, created = UserPreference.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'preferred_breakfast_type': data.get('breakfast_category'),
+                    'preferred_location': data.get('district_category'),
+                    'preferred_price_range': data.get('price_range'),
+                }
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Preferences saved successfully'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
+
+@login_required
+def get_user_id(request):
+    return JsonResponse({
+        'user_id': request.user.id,
+        'status': 'success'
+    })
+
+@login_required
+def get_reviews_for_product(request, product_id):
+    try:
+        reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
+        if not reviews.exists():
+            return JsonResponse({'status': 'error', 'message': 'No reviews found for this product'}, status=404)
+        
+        return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def browse_by_category(request, category):
+    try:
+        # Normalize category input (lowercase and strip whitespace)
+        category = category.lower().strip()
+
+        # Load data from Excel
+        df = pd.read_excel(settings.EXCEL_DATA_PATH)
+
+        # Filter data by category
+        filtered_df = df[df['Kategori'].str.lower().str.strip() == category]
+
+        # Convert to list of dictionaries
+        results = []
+        for _, row in filtered_df.iterrows():
+            try:
+                price = str(row['Harga'])
+                price_value = float(''.join(c for c in price if c.isdigit() or c == '.')) if price and price.strip() else 0
+
+                results.append({
+                    'name': str(row['Nama Produk']).strip(),
+                    'restaurant': str(row['nama_restoran']).strip(),
+                    'price': f"Rp {price_value:,.0f}" if price_value > 0 else "Harga belum tersedia",
+                    'rating': float(str(row['Rating']).replace(',', '.')) if pd.notna(row['Rating']) else 0.0,
+                    'image_url': str(row['Link Foto']) if pd.notna(row['Link Foto']) else '/api/placeholder/400/320',
+                    'location': str(row['Lokasi']).strip() if pd.notna(row['Lokasi']) else '',
+                    'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else ''
+                })
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+
+        # Check if results are empty
+        if not results:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'No items found for category: {category}'
+            }, status=404)
+
+        return JsonResponse({
+            'status': 'success',
+            'category': category,
+            'results': results
+        })
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

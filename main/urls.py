@@ -1,5 +1,6 @@
 from django.urls import path
-from main.views import show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment
+from main import views
+from main.views import browse_by_category, show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment, preferences_api, get_recommendations_json, get_user_data, delete_preferences_flutter, save_preferences_flutter
 
 
 app_name = 'main'
@@ -25,5 +26,14 @@ urlpatterns = [
     path('add_comment/<int:product_id>/', add_comment, name='add_comment'),  # Pastikan ini sesuai
     path('delete_comment/<int:comment_id>/', delete_comment, name='delete_comment'),
     path('edit_comment/<int:comment_id>/', edit_comment, name='edit_comment'),
+    path('api/preferences/', preferences_api, name='preferences_api'),
+    path('api/recommendations/', get_recommendations_json, name='recommendations_api'),
+    path('get_user_data/', get_user_data, name='get_user_data'),
+    path('api/preferences/delete/', delete_preferences_flutter, name='delete_preferences'),
+    path('api/preferences/save/', save_preferences_flutter, name='save_preferences'),
+    path('get_user_data/', get_user_data, name='get_user_data'),
+    path('get-user-id/', views.get_user_id, name='get_user_id'),
+    path('get-reviews-for-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
+    path('api/category/<str:category>/', browse_by_category, name='browse_by_category'),
 ]
-    
+
