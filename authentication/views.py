@@ -68,3 +68,22 @@ def register(request):
             "status": False,
             "message": "Invalid request method."
         }, status=400)
+
+from django.contrib.auth import logout as auth_logout
+...
+@csrf_exempt
+def logout(request):
+    username = request.user.username
+
+    try:
+        auth_logout(request)
+        return JsonResponse({
+            "username": username,
+            "status": True,
+            "message": "Logout berhasil!"
+        }, status=200)
+    except:
+        return JsonResponse({
+        "status": False,
+        "message": "Logout gagal."
+        }, status=401)
