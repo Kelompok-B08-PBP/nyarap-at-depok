@@ -122,3 +122,4 @@ def edit_product_review(request, id):
         form = ProductForm(instance=review)
 
     return render(request, 'edit_product_review.html', {'form': form, 'review': review})
+

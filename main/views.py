@@ -868,8 +868,7 @@ def product_details_recommendation(request, product_id):
             recommended_products = get_recommendations_for_undecided(location, price_range)
         else:
             recommended_products = get_recommendations(breakfast_type, location, price_range)
-
-        # Find the product with matching ID
+        
         try:
             product_index = int(product_id) - 1
             if 0 <= product_index < len(recommended_products):
