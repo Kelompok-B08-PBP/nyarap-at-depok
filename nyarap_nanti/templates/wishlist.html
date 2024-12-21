@@ -9,350 +9,359 @@
             <span class="block text-lg font-normal text-gray-600 mt-2">Your Restaurant Collections</span>
         </h1>
 
-        <!-- Collections Section -->
-        <div class="mb-12">
-            <div class="flex flex-wrap gap-6 justify-center">
-                <!-- Add Collection Card -->
-                <a href="{% url 'nyarap_nanti:create_collection' %}" 
-                   class="w-64 h-64 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-dashed border-blue-300 
-                          flex flex-col items-center justify-center group hover:from-blue-100 hover:to-blue-200 transition duration-300">
-                    <div class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-4 
-                               group-hover:bg-blue-600 transition duration-300">
-                        <span class="text-4xl text-white">+</span>
+        <!-- Wishlist Items Section -->
+        <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in wishlist_items %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-300 flex items-center justify-center text-gray-500">
+                            No Image
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="product-content">
+                    <div class="product-header">
+                        <h3 class="restaurant-name">{{ product.name }}</h3>
+                        <div class="product-rating">
+                            <span class="rating-star">★</span>
+                            <span class="rating-value">{{ product.rating|floatformat:1 }}</span>
+                        </div>
                     </div>
-                    <span class="text-blue-600 font-medium">Create New Collection</span>
-                </a>
-
-                {% for collection in collections %}
-                <div class="w-64 h-64 rounded-xl bg-white shadow-lg hover:shadow-xl transition duration-300">
-                    <div class="h-full flex flex-col">
-                        <!-- Collection Preview -->
-                        <div class="h-40 bg-gray-100 rounded-t-xl flex items-center justify-center relative">
-                            <span class="text-4xl text-gray-400">🍽️</span>
-                            <!-- Delete Button -->
-                            <button onclick="confirmDeleteCollection('{{ collection.id }}')" 
-                                    class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 hover:bg-red-50 
-                                        flex items-center justify-center transition duration-300 group">
-                                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
+                    <p class="menu-name">{{ product.restaurant }}</p>
+                    <div class="product-info">
+                        <div class="location">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>{{ product.location }}</span>
                         </div>
-                        
-                        <!-- Collection Info -->
-                        <div class="p-4 flex-grow">
-                            <h3 class="text-lg font-semibold text-gray-900">{{ collection.name }}</h3>
-                            <p class="text-sm text-gray-500">{{ collection.items.count }} items</p>
+                        <div class="hours">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            <span>{{ product.operational_hours }}</span>
                         </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="px-4 pb-4 flex justify-between items-center">
-                            <a href="{% url 'nyarap_nanti:edit_collection' collection.id %}" 
-                            class="text-gray-600 hover:text-blue-600 transition duration-300">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                            </a>
-                            <a href="{% url 'nyarap_nanti:collection_detail' collection.id %}" 
-                            class="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition duration-300">
-                                <span>View</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </a>
+                    </div>
+                    <div class="product-footer">
+                        <div class="price">Rp {{ product.price|floatformat:0 }}</div>
+                        <div class="action-buttons flex flex-col gap-2">
+                            <form action="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" method="get" class="details-button">
+                                <button type="submit" class="view-detail-btn">Lihat Detail</button>
+                            </form>
+                            <form action="{% url 'nyarap_nanti:remove_from_wishlist' product.id %}" method="post" class="details-button">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-btn">Remove</button>
+                            </form>
                         </div>
                     </div>
                 </div>
-                {% empty %}
-                <!-- Message when no collections are present
-                <div class="text-center py-12">
-                    <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span class="text-4xl">🍽️</span>
-                    </div>
-                    <h3 class="text-xl font-medium text-gray-900 mb-2">You have no collections yet</h3>
-                    <p class="text-gray-600">Start creating collections to organize your favorite restaurants!</p>
-                </div> -->
-                {% endfor %}
-            </div>
-        </div>
-
-                <!-- Wishlist Items Section -->
-                <div class="wishlist-items grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {% for product in wishlist_items %}
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
-                            <div class="product-category">{{ product.category }}</div>
-                        </div>
-                        <div class="product-content">
-                            <div class="product-header">
-                                <h3 class="restaurant-name">{{ product.name }}</h3>
-                                <div class="product-rating">
-                                    <span class="rating-star">★</span>
-                                    <span class="rating-value">{{ product.rating|floatformat:1 }}</span>
-                                </div>
-                            </div>
-                            <p class="menu-name">{{ product.restaurant }}</p>
-                            <div class="product-info">
-                                <div class="location">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
-                                        <circle cx="12" cy="10" r="3"></circle>
-                                    </svg>
-                                    <span>Kec. {{ product.location }}</span>
-                                </div>
-                                <div class="hours">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <path d="M12 6v6l4 2"></path>
-                                    </svg>
-                                    <span>{{ product.operational_hours }}</span>
-                                </div>
-                            </div>
-                            <div class="product-footer">
-                                <div class="price">Rp {{ product.price }}</div>
-                                <a href="{% url 'main:product_details' product_id=product.id category=product.category|default:'umum' %}" class="details-button">
-                                    Lihat Detail
-                                </a>
-                                <form action="{% url 'nyarap_nanti:remove_from_wishlist' product.id %}" method="post" class="details-button">
-                                    {% csrf_token %}
-                                    <button type="submit">Remove</button>
-                                </form>
+                <div class="notes-section mt-4 border-t pt-4">
+                    <h4 class="text-sm font-semibold mb-2">Notes</h4>
+                    <div class="notes-container" id="notes-container-{{ product.id }}">
+                        {% for note in product.notes %}
+                        <div class="note-item mb-2 p-2 bg-gray-50 rounded" id="note-{{ note.id }}">
+                            <p class="text-sm">{{ note.content }}</p>
+                            <div class="flex justify-end gap-2 mt-1">
+                                <button onclick="editNote('{{ note.id }}')" class="text-xs text-blue-600">Edit</button>
+                                <button onclick="deleteNote('{{ note.id }}')" class="text-xs text-red-600">Delete</button>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                </div>      
-        
-        
-
-        <!-- Delete Collection Confirmation Modal -->
-        <div id="deleteCollectionModal" 
-             class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
-            <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Collection</h3>
-                <p class="text-gray-500 mb-6">Are you sure you want to delete this collection? This action cannot be undone.</p>
-                <div class="flex justify-end gap-4">
-                    <button onclick="closeDeleteModal()" 
-                            class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button id="confirmDeleteButton" 
-                            class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">
-                        Delete
-                    </button>
+                        
+                        {% endfor %}
+                    </div>                    
+                    <form onsubmit="addNote(event, '{{ product.id }}')" class="mt-2">
+                        <textarea class="w-full text-sm p-2 border rounded resize-none" rows="2" placeholder="Add a note..."></textarea>
+                        <button type="submit" class="mt-1 px-3 py-1 bg-blue-600 text-white rounded text-sm">Add Note</button>
+                    </form>
                 </div>
             </div>
+            {% empty %}
+            <!-- Tampilkan pesan jika wishlist kosong -->
+            <div class="col-span-4 text-center">
+                <p class="text-gray-500 text-lg">Wishlist Anda kosong. Tambahkan produk favorit Anda!</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
-
 <script>
-    let collectionIdToDelete = null;
+    function addNote(event, productId) {
+        event.preventDefault();
+        const form = event.target;
+        const content = form.querySelector('textarea').value.trim();
 
-    function confirmDeleteCollection(collectionId) {
-        collectionIdToDelete = collectionId;  // Store the collection ID to delete
-        const modal = document.getElementById('deleteCollectionModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        if (!content) return;
+
+        fetch(`/wishlist/note/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `content=${encodeURIComponent(content)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById(`notes-container-${productId}`);
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="note-item mb-2 p-2 bg-gray-50 rounded" id="note-${data.note_id}">
+                        <p class="text-sm">${data.content}</p>
+                        <div class="flex justify-end gap-2 mt-1">
+                            <button onclick="editNote('${data.note_id}')" class="text-xs text-blue-600">Edit</button>
+                            <button onclick="deleteNote('${data.note_id}')" class="text-xs text-red-600">Delete</button>
+                        </div>
+                    </div>
+                `);
+                form.reset();
+            } else {
+                alert('Failed to add note: ' + data.error);
+            }
+        });
     }
-
-    function closeDeleteModal() {
-        const modal = document.getElementById('deleteCollectionModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    // Handle delete action with AJAX
-    document.getElementById('confirmDeleteButton').addEventListener('click', function() {
-        if (collectionIdToDelete) {
-            fetch(`/wishlist/collection/remove/${collectionIdToDelete}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Remove the deleted collection element from the page
-                    document.querySelector(`button[onclick="confirmDeleteCollection('${collectionIdToDelete}')"]`).closest('div.w-64').remove();
+    function deleteNote(noteId) {
+        fetch(`/wishlist/note/delete/${noteId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const noteElement = document.getElementById(`note-${noteId}`);
+                if (noteElement) {
+                    noteElement.remove();
                 }
-                closeDeleteModal();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            } else {
+                alert('Failed to delete note.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    function editNote(noteId) {
+        const noteElement = document.getElementById(`note-${noteId}`);
+        const contentElement = noteElement.querySelector('p.text-sm');
+        const originalContent = contentElement.innerText;
+
+        // Ganti konten dengan textarea untuk mengedit
+        contentElement.innerHTML = `
+            <textarea class="w-full text-sm p-2 border rounded resize-none">${originalContent}</textarea>
+            <button onclick="saveNote('${noteId}')" class="mt-1 px-3 py-1 bg-green-600 text-white rounded text-sm">Save</button>
+            <button onclick="cancelEdit('${noteId}', '${originalContent}')" class="mt-1 px-3 py-1 bg-gray-600 text-white rounded text-sm">Cancel</button>
+        `;
+    }
+
+    function saveNote(noteId) {
+        const noteElement = document.getElementById(`note-${noteId}`);
+        const textarea = noteElement.querySelector('textarea');
+        const updatedContent = textarea.value.trim();
+
+        if (!updatedContent) {
+            alert('Note content cannot be empty.');
+            return;
         }
-    });
-</script>
-<style>
-    .product-card {
-        background: white;
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s ease-in-out;
-        height: 100%;
-        border: 1px solid #f0f0f0;
+
+        fetch(`/wishlist/note/update/${noteId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `content=${encodeURIComponent(updatedContent)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const contentElement = noteElement.querySelector('p.text-sm');
+                contentElement.innerText = data.content;
+            } else {
+                alert('Failed to update note.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
     }
 
-    .product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+    function cancelEdit(noteId, originalContent) {
+        const noteElement = document.getElementById(`note-${noteId}`);
+        const contentElement = noteElement.querySelector('p.text-sm');
+        contentElement.innerText = originalContent;
     }
 
-    .product-image {
-        position: relative;
-        width: 100%;
-        height: 200px;
-        overflow: hidden;
-        background: #f8f9fa;
-    }
 
-    .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
 
-    .product-card:hover .product-image img {
-        transform: scale(1.05);
-    }
-
-    .product-category {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: rgba(0, 0, 0, 0.75);
-        color: white;
-        padding: 0.4rem 0.8rem;
-        border-radius: 2rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        backdrop-filter: blur(4px);
-    }
-
-    .product-content {
-        padding: 1.25rem;
-    }
-
-    .product-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.75rem;
-    }
-
-    .restaurant-name {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .product-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        background: #22C55E;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-    }
-
-    .rating-star {
-        color: #FDE047;
-    }
-
-    .menu-name {
-        font-size: 0.875rem;
-        color: #4b5563;
-        margin: 0.5rem 0;
-        line-height: 1.5;
-    }
-
-    .product-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-        margin: 1rem 0;
-    }
-
-    .location, 
-    .hours {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #6b7280;
-        font-size: 0.813rem;
-    }
-
-    .location svg, 
-    .hours svg {
-        width: 1rem;
-        height: 1rem;
-        stroke-width: 2;
-        color: #9ca3af;
-    }
-
-    .product-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 1.25rem;
-        padding-top: 1.25rem;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .price {
-        font-weight: 700;
-        font-size: 1.125rem;
-        color: #1a1a1a;
-    }
-
-    .details-button {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .details-button a,
-    .details-button button {
-        background: #F97316;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .details-button a:hover,
-    .details-button button:hover {
-        background: #EA580C;
-    }
-
-    /* Grid layout improvements */
-    .wishlist-items {
-        gap: 1.5rem;
-        padding: 1.5rem 0;
-    }
-
-    @media (max-width: 640px) {
-        .wishlist-items {
-            grid-template-columns: repeat(1, 1fr);
-            gap: 1rem;
+    </script>
+    
+    
+    <style>
+        .product-card {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            display: grid;
+            grid-template-rows: auto 1fr auto; /* This creates a fixed layout */
+            min-height: 550px;
+            border: 1px solid #f0f0f0;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    
+        .product-image {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+    
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+    
+        .product-content {
+            padding: 1.5rem;
+            background: linear-gradient(to bottom, #ffffff, #fafafa);
+            display: flex;
+            flex-direction: column;
+        }
+    
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+    
+        .restaurant-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+    
+        .menu-name {
+            color: #4b5563;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+    
+        .product-rating {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.4rem 0.8rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .rating-star {
+            color: #fbbf24;
+        }
+    
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+    
+        .location, .hours {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+    
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #16a34a;
+        }
+    
+        .action-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+    
+        .view-detail-btn, .remove-btn {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            text-align: center;
+            cursor: pointer;
+        }
+    
+        .view-detail-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+        }
+        
+        .view-detail-btn:hover {
+            background: #d97706;
+        }
+        
+        .remove-btn {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fcd34d;
+        }
+        
+        .remove-btn:hover {
+            background: #fde68a;
+        }
+    
+        .notes-section {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 0 0 1.25rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+    
+        .note-item {
+            background: white;
             padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0.75rem;
         }
-    }
-</style>
+
+        .notes-container {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            scrollbar-width: thin;
+        }
+    
+        @media (max-width: 768px) {
+            .product-card {
+                max-width: 100%;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    
 {% endblock %}

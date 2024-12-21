@@ -4,6 +4,8 @@ import pandas as pd
 import os
 from django.conf import settings
 
+from nyarap_detailer.models import Detailer
+
 def load_recommendations_from_excel():
     try:
         # Dapatkan path absolut file Excel
