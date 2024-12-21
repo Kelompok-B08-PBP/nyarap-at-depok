@@ -1,4 +1,3 @@
-
 import json
 from django.shortcuts import render, redirect, reverse 
 from .forms import ProductForm
@@ -25,34 +24,42 @@ def show_reviews(request):
 @login_required(login_url='/login')
 @csrf_exempt
 @require_POST
-def add_product_review_ajax(request,id):
-    # Mengambil dan membersihkan data form dari permintaan POST
-    restaurant_name = strip_tags(request.POST.get("restaurant_name"))
-    food_name = strip_tags(request.POST.get("food_name"))
-    rating = int(strip_tags(request.POST.get("rating")))
-    review_text = strip_tags(request.POST.get("review"))
-    user = request.user
+def add_product_review_ajax(request, product_id):
+    if request.method == 'POST':
+        try:
+            product = Product.objects.filter(id=product_id).first()
+            if not product:
+                return JsonResponse({'status': 'error', 'message': 'Invalid product ID'}, status=404)
 
-    # Membuat dan menyimpan instance baru dari Product sebagai review
-    new_review = Product(
-        restaurant_name=restaurant_name,
-        food_name=food_name,
-        rating=rating,
-        review=review_text,
-        user=user,
-        product_identifier = id,
-    )
-    new_review.save()
+            new_review = Product.objects.create(
+                user=request.user,
+                restaurant_name=request.POST.get('restaurant_name'),
+                food_name=request.POST.get('food_name'),
+                rating=int(request.POST.get('rating')),
+                review=request.POST.get('review'),
+                product_identifier=str(product_id),  # Store as string
+            )
 
-    # Mengembalikan respon dalam bentuk JSON yang berisi detail review baru
-    return JsonResponse({
-        'id': new_review.id,
-        'restaurant_name': new_review.restaurant_name,
-        'food_name': new_review.food_name,
-        'rating': new_review.rating,
-        'review': new_review.review,
-        'date_added': new_review.date_added.strftime("%Y-%m-%d"),
-    })
+            return JsonResponse({
+                'status': 'success',
+                'data': {
+                    'model': 'reviews.product',
+                    'pk': new_review.id,
+                    'fields': {
+                        'user': new_review.user.id,
+                        'restaurant_name': new_review.restaurant_name,
+                        'food_name': new_review.food_name,
+                        'review': new_review.review,
+                        'rating': new_review.rating,
+                        'date_added': new_review.date_added.isoformat(),
+                        'product_identifier': new_review.product_identifier
+                    }
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
 
 # Mengembalikan data produk dalam format XML untuk produk pengguna yang sedang login
 def show_xml(request):
@@ -141,9 +148,13 @@ def add_product_review_ajax_all(request):
 
 @csrf_exempt
 def delete_product_review(request, id):
-    if request.method == 'POST':  # Changed from DELETE to POST
+    if request.method == 'POST':
         try:
+            # Tambahkan print untuk debug
+            print(f"Attempting to delete review with ID: {id}")
             review = Product.objects.get(pk=id)
+            print(f"Review found: {review}")
+            
             if review.user == request.user:
                 review.delete()
                 return JsonResponse({'status': 'success'})
@@ -153,6 +164,7 @@ def delete_product_review(request, id):
                     'message': 'Not authorized to delete this review'
                 }, status=403)
         except Product.DoesNotExist:
+            print(f"Review with ID {id} not found")  # Debug print
             return JsonResponse({
                 'status': 'error', 
                 'message': 'Review not found'
@@ -266,5 +278,11 @@ def get_user_id(request):
 
 @login_required
 def get_reviews_for_product(request, product_id):
-    reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
-    return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
+    try:
+        reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
+        if not reviews.exists():
+            return JsonResponse({'status': 'error', 'message': 'No reviews found for this product'}, status=404)
+        
+        return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
