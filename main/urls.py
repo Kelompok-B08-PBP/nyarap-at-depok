@@ -30,6 +30,6 @@ urlpatterns = [
     path('get_user_data/', get_user_data, name='get_user_data'),
     path('api/preferences/delete/', delete_preferences_flutter, name='delete_preferences'),
     path('api/preferences/save/', save_preferences_flutter, name='save_preferences'),
-    path('api/products/<int:product_id>/', product_details_api, name='product_details_api'),
+    path('api/products/<str:product_id>/', product_details_api, name='product_details_api'),
 ]
 

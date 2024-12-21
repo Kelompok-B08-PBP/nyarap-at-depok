@@ -63,6 +63,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nyarap_at_depok.wsgi.application'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 # Database
 DATABASES = {
     'default': {
