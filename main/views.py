@@ -719,13 +719,15 @@ def product_details(request, category, product_id):
             messages.error(request, 'Produk tidak ditemukan.')
             return redirect('main:browse_category', category=category)
         
-        product['id'] = product_id
+        # Pastikan ID konsisten dengan format yang sama
+        product['id'] = str(product_id)  # Konversi ke string
         
-        # Get reviews and wishlist status
+        # Get reviews dengan format ID yang sama
         reviews = []
         is_in_wishlist = False
         
         try:
+            # Gunakan str(product_id) untuk memastikan format konsisten
             reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
             if request.user.is_authenticated:
                 is_in_wishlist = Wishlist.objects.filter(
@@ -733,8 +735,11 @@ def product_details(request, category, product_id):
                     product_id=product_id
                 ).exists()
         except Exception as e:
+            print(f"Error fetching reviews: {e}")
             pass
-        comments = Comment.objects.filter(product_identifier=product_id)
+
+        comments = Comment.objects.filter(product_identifier=str(product_id))  # Konversi ke string juga
+        
         context = {
             'product': product,
             'category': category,
@@ -745,13 +750,9 @@ def product_details(request, category, product_id):
             'show_reviews': True,
             'user': request.user,
             'is_in_wishlist': is_in_wishlist,
-            'product_id': product_id,
+            'product_id': str(product_id),  # Pastikan selalu string
             'return_url': request.GET.get('return_url', 'main:browse_category')
         }
-        
-        # Check if request is coming from nyarap_nanti
-        if 'nyarap_nanti' in request.GET.get('source', ''):
-            return redirect('nyarap_nanti:product_details', category=category, product_id=product_id)
         
         return render(request, 'product_details.html', context)
         
@@ -762,6 +763,7 @@ def product_details(request, category, product_id):
         print(f"Error in product_details: {str(e)}")
         messages.error(request, 'Terjadi kesalahan saat memuat detail produk.')
         return redirect('main:browse_category', category=category)
+    
 
 @login_required
 def add_to_wishlist(request, product_id):
@@ -1692,3 +1694,4 @@ def get_reviews_for_product(request, product_id):
         return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
