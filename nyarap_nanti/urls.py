@@ -14,4 +14,10 @@ urlpatterns = [
     path('wishlist/note/delete/<int:note_id>/', views.delete_note, name='delete_note'),
     path('wishlist/notes/json/', views.notes_json, name='notes_json'),
     path('wishlist/notes/json/<int:product_id>/', views.notes_json, name='notes_json_by_product'),
+    path('wishlist/remove-json/<int:product_id>/', views.remove_from_wishlist_json, name='remove_from_wishlist_json'),
+    path('wishlist/note/add-flutter/<int:product_id>/', views.add_note_flutter, name='add_note_flutter'),
+    path('wishlist/note/edit-flutter/<int:note_id>/', views.edit_note_flutter, name='edit_note_flutter'),
+    path('wishlist/note/delete-flutter/<int:note_id>/', views.delete_note_flutter, name='delete_note_flutter'),
+
+
 ]

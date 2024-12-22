@@ -18,6 +18,7 @@ from django.contrib.auth.signals import user_logged_in
 
 logger = logging.getLogger(__name__)
 
+@csrf_exempt
 @login_required
 def add_to_wishlist(request, product_id):
     product = get_product_by_id(product_id)
@@ -39,11 +40,6 @@ def add_to_wishlist(request, product_id):
             'image_url': product.get('image_url', '')
         }
     )
-
-    # if created:
-    #     messages.success(request, f"{product['name']} berhasil ditambahkan ke wishlist.")
-    # else:
-    #     messages.info(request, f"{product['name']} sudah ada di wishlist.")
 
     return redirect('nyarap_nanti:wishlist_page')
 
@@ -93,8 +89,6 @@ def wishlist_page(request):
         # 'collections': collections,
         'wishlist_items': wishlist_items_list,
     })
-
-
 
 @login_required
 def remove_from_wishlist(request, product_id):
@@ -146,8 +140,6 @@ def load_recommendations_from_excel():
         print(f"Error loading recommendations: {e}")
         return []
 
-
-
 @login_required
 def wishlist_json(request):
     try:
@@ -197,8 +189,6 @@ def add_note(request, product_id):
             'updated_at': note.updated_at.strftime('%Y-%m-%d %H:%M:%S')
         })
     return JsonResponse({'success': False}, status=400)
-
-
 
 @login_required
 def update_note(request, note_id):
@@ -257,3 +247,92 @@ def notes_json(request, product_id=None):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+@csrf_exempt
+@login_required
+def remove_from_wishlist_json(request, product_id):
+    try:
+        # Delete the wishlist item from database
+        WishlistItem.objects.filter(user=request.user, product_id=product_id).delete()
+        
+        # Update session data
+        wishlist = request.session.get('wishlist', [])
+        wishlist = [item for item in wishlist if item['id'] != product_id]
+        request.session['wishlist'] = wishlist
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Item removed from wishlist'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@csrf_exempt
+@login_required
+def add_note_flutter(request, product_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            content = data.get('content', '').strip()
+            wishlist_item = get_object_or_404(WishlistItem, product_id=product_id, user=request.user)
+            
+            if content:
+                note = WishlistNote.objects.create(
+                    wishlist_item=wishlist_item,
+                    content=content
+                )
+                return JsonResponse({
+                    'status': 'success',
+                    'note': {
+                        'id': note.id,
+                        'content': note.content,
+                        'created_at': note.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                })
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+
+@csrf_exempt
+@login_required
+def edit_note_flutter(request, note_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            content = data.get('content', '').strip()
+            note = get_object_or_404(WishlistNote, id=note_id, wishlist_item__user=request.user)
+            
+            if content:
+                note.content = content
+                note.save()
+                return JsonResponse({
+                    'status': 'success',
+                    'note': {
+                        'id': note.id,
+                        'content': note.content,
+                        'updated_at': note.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                })
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+
+@csrf_exempt
+@login_required
+def delete_note_flutter(request, note_id):
+    if request.method == 'POST':
+        note = get_object_or_404(WishlistNote, id=note_id, wishlist_item__user=request.user)
+        note.delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)

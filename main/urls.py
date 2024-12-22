@@ -35,5 +35,6 @@ urlpatterns = [
     path('get-user-id/', views.get_user_id, name='get_user_id'),
     path('get-reviews-for-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
     path('api/category/<str:category>/', browse_by_category, name='browse_by_category'),
+    path('api/product/<int:product_id>/', product_details_api, name='product_details_api'),
 ]
 

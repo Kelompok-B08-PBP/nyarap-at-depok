@@ -1037,6 +1037,25 @@ def delete_comment(request, comment_id):
 @require_http_methods(["POST"])
 @csrf_exempt
 def get_recommendations_json(request):
+    """Fungsi utama yang menangani request rekomendasi"""
+    try:
+        # Cek apakah request membutuhkan cache
+        data = json.loads(request.body)
+        if data.get('use_cache', False):
+            return get_cached_recommendations(request)
+        else:
+            return get_recommendations_json_original(request)
+    except Exception as e:
+        print(f"Error in main function: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def get_recommendations_json(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -1049,10 +1068,8 @@ def get_recommendations_json(request):
             df = pd.read_excel(settings.EXCEL_DATA_PATH)
             df = df.reset_index(drop=True)
             
-            # Convert price strings to numeric values
             df['price_value'] = df['Harga'].apply(lambda x: float(''.join(c for c in str(x) if c.isdigit() or c == '.')) if pd.notna(x) and str(x).strip() else 0)
 
-            # Define price range filters
             price_filters = {
                 '0-15000': (0, 15000),
                 '15000-25000': (15000, 25000),
@@ -1063,7 +1080,6 @@ def get_recommendations_json(request):
 
             min_price, max_price = price_filters.get(price_range, (0, float('inf')))
 
-            # Filter dataframe
             mask = (
                 (df['Kategori'].str.lower().str.strip() == breakfast_type) & 
                 (df['Kecamatan'].str.strip() == location) &
@@ -1079,8 +1095,14 @@ def get_recommendations_json(request):
                     price = str(row['Harga'])
                     price_value = float(''.join(c for c in price if c.isdigit() or c == '.')) if price and price.strip() else 0
                     
+                    product_id = generate_product_id(
+                        str(row['Nama Produk']).strip(),
+                        str(row['nama_restoran']).strip(),
+                        location
+                    )
+                    
                     recommendation = {
-                        'id': str(index + 1),
+                        'id': str(product_id),
                         'name': str(row['Nama Produk']).strip(),
                         'restaurant': str(row['nama_restoran']).strip(),
                         'price': f"Rp {price_value:,.0f}" if price_value > 0 else "Harga belum tersedia",
@@ -1099,11 +1121,9 @@ def get_recommendations_json(request):
             print(f"Found {len(recommendations)} recommendations")
             print("Recommendations with IDs:", [{'id': r['id'], 'name': r['name']} for r in recommendations])
             
-            # Simpan recommendations ke cache dengan key yang unik
             cache_key = f"recommendations_{breakfast_type}_{location}_{price_range}"
-            cache.set(cache_key, recommendations, timeout=300)  # timeout 5 menit
+            cache.set(cache_key, recommendations, timeout=300)
             
-            # Simpan juga current preferences
             cache.set(f"{cache_key}_preferences", {
                 'breakfast_type': breakfast_type,
                 'location': location,
@@ -1113,7 +1133,7 @@ def get_recommendations_json(request):
             return JsonResponse({
                 'status': 'success',
                 'recommendations': recommendations,
-                'cache_key': cache_key  # Kirim cache_key ke frontend
+                'cache_key': cache_key
             })
 
         except Exception as e:
@@ -1568,59 +1588,38 @@ def save_preferences_flutter(request):
 @require_http_methods(["GET"])
 def product_details_api(request, product_id):
     try:
+        # Get product details using get_product_by_id
+        product = get_product_by_id(int(product_id))
 
-        
-        # Get cache_key from query parameters
-        cache_key = request.GET.get('cache_key')
+        if not product:
+            return JsonResponse({'error': 'Product not found'}, status=404)
 
-        
-        if not cache_key:
-            return JsonResponse({'error': 'Cache key not provided'}, status=400)
+        # Format product details including the ID from get_product_by_id
+        formatted_product = {
+            'product_id': str(product.get('id', product_id)),  # Get ID from product or fallback to parameter
+            'name': product.get('name', ''),
+            'restaurant': product.get('restaurant', ''),
+            'rating': float(product.get('rating', 0.0)),
+            'operational_hours': product.get('operational_hours', ''),
+            'location': product.get('location', ''),
+            'display_price': product.get('display_price', 'Harga belum tersedia'),
+            'image_url': product.get('image_url', '/api/placeholder/800/400'),
+            'category': product.get('category', '').title(),
+            'kecamatan': product.get('kecamatan', ''),
+            'is_in_wishlist': False
+        }
 
-        # Get recommendations from cache
-        recommended_products = cache.get(cache_key)
+        # Check if product is in wishlist for authenticated users
+        if request.user.is_authenticated:
+            formatted_product['is_in_wishlist'] = Wishlist.objects.filter(
+                user=request.user,
+                product_id=formatted_product['product_id']
+            ).exists()
 
-        
-        if not recommended_products:
-            return JsonResponse({'error': 'Data expired, please search again'}, status=404)
+        return JsonResponse(formatted_product)
 
-        # Find the product with matching ID
-        try:
-            product_index = int(product_id) - 1
-            if 0 <= product_index < len(recommended_products):
-                product = recommended_products[product_index]
-                
-                # Format the product data to match Flutter expectations exactly
-                formatted_product = {
-                    'id': str(product_id),
-                    'name': product.get('name', ''),
-                    'restaurant': product.get('restaurant', ''),
-                    'rating': float(product.get('rating', 0.0)),
-                    'operational_hours': product.get('operational_hours', ''),
-                    'location': product.get('location', ''),
-                    'display_price': product.get('price', 'Harga belum tersedia'),
-                    'image_url': product.get('image_url', '/api/placeholder/800/400'),
-                    'category': product.get('category', '').title(),
-                    'is_in_wishlist': False
-                }
-
-                # Add wishlist status if user is authenticated
-                if request.user.is_authenticated:
-                    formatted_product['is_in_wishlist'] = Wishlist.objects.filter(
-                        user=request.user,
-                        product_id=product_id
-                    ).exists()
-
-
-                return JsonResponse(formatted_product)
-            else:
-
-                return JsonResponse({'error': 'Product not found'}, status=404)
-                
-        except (ValueError, IndexError) as e:
-
-            return JsonResponse({'error': 'Invalid product ID'}, status=400)
-
+    except ValueError:
+        return JsonResponse({'error': 'Invalid product ID'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
