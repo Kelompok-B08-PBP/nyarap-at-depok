@@ -1436,3 +1436,63 @@ def browse_by_category(request, category):
             'status': 'error',
             'message': str(e)
         }, status=500)
+    
+@require_http_methods(["GET"])
+def product_details_api(request, product_id):
+    try:
+
+        
+        # Get cache_key from query parameters
+        cache_key = request.GET.get('cache_key')
+
+        
+        if not cache_key:
+            return JsonResponse({'error': 'Cache key not provided'}, status=400)
+
+        # Get recommendations from cache
+        recommended_products = cache.get(cache_key)
+
+        
+        if not recommended_products:
+            return JsonResponse({'error': 'Data expired, please search again'}, status=404)
+
+        # Find the product with matching ID
+        try:
+            product_index = int(product_id) - 1
+            if 0 <= product_index < len(recommended_products):
+                product = recommended_products[product_index]
+                
+                # Format the product data to match Flutter expectations exactly
+                formatted_product = {
+                    'id': str(product_id),
+                    'name': product.get('name', ''),
+                    'restaurant': product.get('restaurant', ''),
+                    'rating': float(product.get('rating', 0.0)),
+                    'operational_hours': product.get('operational_hours', ''),
+                    'location': product.get('location', ''),
+                    'display_price': product.get('price', 'Harga belum tersedia'),
+                    'image_url': product.get('image_url', '/api/placeholder/800/400'),
+                    'category': product.get('category', '').title(),
+                    'is_in_wishlist': False
+                }
+
+                # Add wishlist status if user is authenticated
+                if request.user.is_authenticated:
+                    formatted_product['is_in_wishlist'] = Wishlist.objects.filter(
+                        user=request.user,
+                        product_id=product_id
+                    ).exists()
+
+
+                return JsonResponse(formatted_product)
+            else:
+
+                return JsonResponse({'error': 'Product not found'}, status=404)
+                
+        except (ValueError, IndexError) as e:
+
+            return JsonResponse({'error': 'Invalid product ID'}, status=400)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+

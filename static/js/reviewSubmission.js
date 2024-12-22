@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isProductDetailsPage) {
                     // Jika di halaman detail produk, gunakan URL dengan product ID
                     const productId = document.body.dataset.productId; // Tambahkan data-product-id di template
-                    submitUrl = `/review/add/${productId}`;
+                    submitUrl = `/review/add/${productId}/`;
                 } else {
                     // Jika di halaman reviews, gunakan URL general
                     submitUrl = config.addReviewUrl;
