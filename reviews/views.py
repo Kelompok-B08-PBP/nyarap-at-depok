@@ -39,7 +39,7 @@ def add_product_review_ajax(request,id):
         rating=rating,
         review=review_text,
         user=user,
-        product_identifier = id,
+        product_identifier=str(id),
     )
     new_review.save()
 
@@ -77,38 +77,45 @@ def show_json_by_id(request, id):
 def add_product_review_ajax_all(request):
     if request.method == 'POST':
         try:
-            # Cek jika user terautentikasi
             if not request.user.is_authenticated:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'User not authenticated'
                 }, status=403)
 
-            # Parse data from JSON if it's in request.body
-            try:
-                data = json.loads(request.body)
-            except json.JSONDecodeError:
-                data = request.POST
-            
-            # Validasi data
+            # Ambil data dari form (request.POST) atau JSON (request.body)
+            data = request.POST if request.POST else json.loads(request.body)
+
+            # Pastikan kita ambil semua field
             restaurant_name = data.get('restaurant_name')
             food_name = data.get('food_name')
-            rating = int(data.get('rating'))
+            rating = data.get('rating')
             review_text = data.get('review')
+            
+            # Ambil product_identifier dari hidden input (HTML) atau dari Flutter
+            product_identifier = data.get('product_identifier', '')
 
+            # Validasi
             if not all([restaurant_name, food_name, rating, review_text]):
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Missing required fields'
                 }, status=400)
 
-            # Buat review baru
+            # Convert rating ke int
+            try:
+                rating = int(rating)
+            except ValueError:
+                rating = 0
+
+            # Buat review baru (pakai model Product di sini, jika memang 1 table)
             new_review = Product.objects.create(
+                user=request.user,
                 restaurant_name=restaurant_name,
                 food_name=food_name,
                 rating=rating,
                 review=review_text,
-                user=request.user,
+                product_identifier=product_identifier,
             )
 
             return JsonResponse({
@@ -123,11 +130,12 @@ def add_product_review_ajax_all(request):
                         "review": new_review.review,
                         "rating": new_review.rating,
                         "date_added": new_review.date_added.strftime("%Y-%m-%d"),
-                        "product_identifier": ""
+                        "product_identifier": new_review.product_identifier,
                     }
                 }
             })
         except Exception as e:
+            print(f"Error adding review: {e}")
             return JsonResponse({
                 'status': 'error',
                 'message': str(e)
@@ -260,7 +268,7 @@ def edit_product_review(request, id):
     }, status=405)
 
 def get_reviews(request):
-    reviews = Product.objects.all()  # Ganti reviews.objects jadi Product.objects
+    reviews = Product.objects.all().order_by('-date_added')
     review_data = serializers.serialize('json', reviews)
     return HttpResponse(review_data, content_type="application/json")
 
@@ -274,11 +282,17 @@ def get_user_id(request):
 @login_required
 def get_reviews_for_product(request, product_id):
     try:
-        reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
-        if not reviews.exists():
-            return JsonResponse({'status': 'error', 'message': 'No reviews found for this product'}, status=404)
+        # Pastikan format product_id konsisten
+        sanitized_id = str(product_id).strip()
+        print(f"Getting reviews for product: {sanitized_id}")  # Debug log
         
-        return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
+        reviews = Product.objects.filter(product_identifier=sanitized_id).order_by('-date_added')
+        print(f"Found {reviews.count()} reviews")  # Debug log
+        
+        return HttpResponse(
+            serializers.serialize('json', reviews),
+            content_type="application/json"
+        )
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
+        print(f"Error getting reviews: {e}")  # Debug log
+        return JsonResponse([], safe=False)

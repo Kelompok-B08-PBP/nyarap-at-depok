@@ -16,5 +16,5 @@ urlpatterns = [
     path('edit-product-review/<int:id>/', edit_product_review, name='edit_product_review'), 
     path('get-reviews/', get_reviews, name='get_reviews'),
     path('get-user-id/', views.get_user_id, name='get_user_id'),
-    path('get-reviews-for-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
+    path('get-reviews-by-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
 ]

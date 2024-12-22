@@ -1,6 +1,6 @@
 from django.urls import path
 from main import views
-from main.views import browse_by_category, product_details_api, show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment, preferences_api, get_recommendations_json, get_user_data, delete_preferences_flutter, save_preferences_flutter
+from main.views import browse_by_category, show_main, create_preference_entry, show_xml, show_json, show_xml_by_id, show_json_by_id, register, login_user,logout_user, recommendations, recommendation_list, edit_preferences, browse_category, product_details, product_details_recommendation, delete_preferences, add_to_wishlist, add_comment, delete_comment, edit_comment, preferences_api, get_recommendations_json, get_user_data, delete_preferences_flutter, save_preferences_flutter, product_details_api
 
 
 app_name = 'main'
@@ -31,10 +31,8 @@ urlpatterns = [
     path('get_user_data/', get_user_data, name='get_user_data'),
     path('api/preferences/delete/', delete_preferences_flutter, name='delete_preferences'),
     path('api/preferences/save/', save_preferences_flutter, name='save_preferences'),
-    path('get_user_data/', get_user_data, name='get_user_data'),
+    path('api/products/<str:product_id>/', product_details_api, name='product_details_api'),
     path('get-user-id/', views.get_user_id, name='get_user_id'),
     path('get-reviews-for-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
     path('api/category/<str:category>/', browse_by_category, name='browse_by_category'),
-    path('api/products/<str:product_id>/', product_details_api, name='product_details_api'),
 ]
-
