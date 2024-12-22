@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements (checking each element individually to handle different pages)
     const elements = {
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         createActionButtons(reviewId, csrfToken) {
             return `
                 <div class="flex space-x-2 mt-4">
-                    <a href="/review/edit-product-review/${reviewId}/" 
+                    <a href="/review/edit-product-review/${review}/" 
                     class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
                         Edit
                     </a>
@@ -174,38 +175,67 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             
             try {
-                const response = await fetch(config.addReviewUrl, {
+                // Tentukan URL berdasarkan konteks
+                const isProductDetailsPage = document.body.classList.contains('product-details-page');
+                let submitUrl;
+                let formData = new FormData(elements.reviewForm);
+
+                if (isProductDetailsPage) {
+                    // Jika di halaman detail produk, gunakan URL dengan product ID
+                    const productId = document.body.dataset.productId; // Tambahkan data-product-id di template
+                    submitUrl = `/review/add/${productId}/`;
+                } else {
+                    // Jika di halaman reviews, gunakan URL general
+                    submitUrl = config.addReviewUrl;
+                }
+
+                const response = await fetch(submitUrl, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': config.csrfToken
                     },
-                    body: new FormData(elements.reviewForm)
+                    body: formData
                 });
 
                 const responseData = await response.json();
                 if (!response.ok) throw new Error(responseData.error || 'Failed to add review');
 
-                this.handleSuccessfulSubmission(responseData);
+                this.handleSuccessfulSubmission(responseData, isProductDetailsPage);
             } catch (error) {
                 console.error('Error:', error);
                 alert(`Error adding review: ${error.message}`);
             }
         },
 
-        handleSuccessfulSubmission(newReview) {
+        handleSuccessfulSubmission(newReview, isProductDetailsPage) {
             const noReviewMessage = document.querySelector('.no-reviews-placeholder');
             if (noReviewMessage) noReviewMessage.remove();
 
-            // Add new review card untuk `reviewsContainer`
+            // Generate card HTML
             const newCardHTML = ReviewCardGenerator.generateCard(newReview);
-            if (elements.reviewsContainer) {
-                const newCard = document.createElement('div');
-                newCard.innerHTML = newCardHTML;
-                elements.reviewsContainer.prepend(newCard.firstElementChild);
+            
+            if (isProductDetailsPage) {
+                // Jika di halaman detail produk, tambahkan ke container review produk
+                const productReviewsContainer = document.querySelector('.product-reviews-container');
+                if (productReviewsContainer) {
+                    const newCard = document.createElement('div');
+                    newCard.innerHTML = newCardHTML;
+                    productReviewsContainer.prepend(newCard.firstElementChild);
+                }
+            } else {
+                // Jika di halaman reviews, tambahkan ke container utama
+                if (elements.reviewsContainer) {
+                    const newCard = document.createElement('div');
+                    newCard.innerHTML = newCardHTML;
+                    elements.reviewsContainer.prepend(newCard.firstElementChild);
+                }
             }
 
-            // Reset form dan close modal
+            // Reset form dan tutup modal
             ModalController.hide();
+
+            // Optional: Tambahkan notifikasi sukses
+            alert('Review berhasil ditambahkan!');
         },
 
         init() {

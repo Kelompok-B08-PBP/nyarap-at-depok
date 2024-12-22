@@ -726,7 +726,7 @@ def product_details(request, category, product_id):
         is_in_wishlist = False
         
         try:
-            reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
+            reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
             if request.user.is_authenticated:
                 is_in_wishlist = Wishlist.objects.filter(
                     user=request.user,
@@ -1622,3 +1622,73 @@ def product_details_api(request, product_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def browse_by_category(request, category):
+    try:
+        # Normalize category input (lowercase and strip whitespace)
+        category = category.lower().strip()
+
+        # Load data from Excel
+        df = pd.read_excel(settings.EXCEL_DATA_PATH)
+
+        # Filter data by category
+        filtered_df = df[df['Kategori'].str.lower().str.strip() == category]
+
+        # Convert to list of dictionaries
+        results = []
+        for _, row in filtered_df.iterrows():
+            try:
+                price = str(row['Harga'])
+                price_value = float(''.join(c for c in price if c.isdigit() or c == '.')) if price and price.strip() else 0
+
+                results.append({
+                    'name': str(row['Nama Produk']).strip(),
+                    'restaurant': str(row['nama_restoran']).strip(),
+                    'price': f"Rp {price_value:,.0f}" if price_value > 0 else "Harga belum tersedia",
+                    'rating': float(str(row['Rating']).replace(',', '.')) if pd.notna(row['Rating']) else 0.0,
+                    'image_url': str(row['Link Foto']) if pd.notna(row['Link Foto']) else '/api/placeholder/400/320',
+                    'location': str(row['Lokasi']).strip() if pd.notna(row['Lokasi']) else '',
+                    'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else ''
+                })
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+
+        # Check if results are empty
+        if not results:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'No items found for category: {category}'
+            }, status=404)
+
+        return JsonResponse({
+            'status': 'success',
+            'category': category,
+            'results': results
+        })
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    
+@login_required
+def get_user_id(request):
+    return JsonResponse({
+        'user_id': request.user.id,
+        'status': 'success'
+    })
+
+@login_required
+def get_reviews_for_product(request, product_id):
+    try:
+        reviews = Product.objects.filter(product_identifier=str(product_id)).order_by('-date_added')
+        if not reviews.exists():
+            return JsonResponse({'status': 'error', 'message': 'No reviews found for this product'}, status=404)
+        
+        return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
