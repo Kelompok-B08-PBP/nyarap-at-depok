@@ -1021,19 +1021,6 @@ def add_comment(request, product_id):
         })
     return JsonResponse({'success': False}, status=400)
 
-@require_POST
-def edit_comment(request, comment_id):
-    comment = Comment.objects.get(id=comment_id)
-    comment.content = request.POST.get('content')
-    comment.save()
-    return JsonResponse({'message': 'Comment edited successfully!'})
-
-@require_POST
-def delete_comment(request, comment_id):
-    comment = Comment.objects.get(id=comment_id)
-    comment.delete()
-    return JsonResponse({'message': 'Comment deleted successfully!'})
-
 @require_http_methods(["POST"])
 @csrf_exempt
 def get_recommendations_json(request):
@@ -1694,3 +1681,103 @@ def get_reviews_for_product(request, product_id):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
+def get_comments(request, product_identifier):
+    comments = Comment.objects.filter(product_identifier=product_identifier).order_by('-created_at')
+    response_data = {
+        "current_user": request.user.username,
+        "comments": [
+            {
+                "id": comment.id,
+                "content": comment.content,
+                "user": {"username": comment.user.username},  # Sertakan username
+                "created_at": comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "updated_at": comment.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for comment in comments
+        ]
+    }
+    return JsonResponse(response_data, safe=False, status=200)
+
+@csrf_exempt
+@login_required
+def add_comment(request, product_identifier):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            content = data.get('content', '').strip()
+
+            if not content:
+                return JsonResponse({'error': 'Content is required'}, status=400)
+
+            # Buat komentar dengan user dari request
+            comment = Comment.objects.create(
+                user=request.user,
+                product_identifier=product_identifier,
+                content=content,
+            )
+
+            # Kembalikan respons dalam format JSON
+            return JsonResponse({
+                'id': comment.id,
+                'content': comment.content,
+                'user': {'username': comment.user.username},
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': comment.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            }, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+@login_required
+def edit_comment(request, comment_id):
+    if request.method == "POST":
+        try:
+            comment = Comment.objects.get(id=comment_id)
+
+            # Validasi hanya pemilik komentar yang dapat mengedit
+            if comment.user != request.user:
+                return JsonResponse({'error': 'You do not have permission to edit this comment'}, status=403)
+
+            # Ambil data dari request
+            data = json.loads(request.body)
+            content = data.get('content', '').strip()
+            if not content:
+                return JsonResponse({'error': 'Content cannot be empty'}, status=400)
+
+            # Update komentar
+            comment.content = content
+            comment.save()
+
+            # Kembalikan JSON respons
+            return JsonResponse({
+                'id': comment.id,
+                'content': comment.content,
+                'user': {'username': comment.user.username},
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': comment.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+@login_required
+def delete_comment(request, comment_id):
+    if request.method == "POST":
+        try:
+            comment = Comment.objects.get(id=comment_id)
+
+            # Validasi hanya pemilik komentar yang dapat menghapus
+            if comment.user != request.user:
+                return JsonResponse({'error': 'You do not have permission to delete this comment'}, status=403)
+
+            comment.delete()
+            return JsonResponse({'message': 'Comment deleted successfully'}, status=200)
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+

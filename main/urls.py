@@ -36,5 +36,9 @@ urlpatterns = [
     path('get-reviews-for-product/<str:product_id>/', views.get_reviews_for_product, name='get_reviews_for_product'),
     path('api/category/<str:category>/', browse_by_category, name='browse_by_category'),
     path('api/product/<int:product_id>/', product_details_api, name='product_details_api'),
+    path('api/products/<str:product_identifier>/comments/', views.get_comments, name='get-comments'),
+    path('api/products/<str:product_identifier>/comments/add/', views.add_comment, name='add-comment'),
+    path('api/comments/<int:comment_id>/edit/', views.edit_comment, name='edit-comment'),
+    path('api/comments/<int:comment_id>/delete/', views.delete_comment, name='delete-comment'),
 ]
 
