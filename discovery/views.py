@@ -108,6 +108,166 @@ def discovery_page(request):
     posts = PostEntry.objects.all().order_by('-created_at')
     return render(request, 'discovery.html', {'posts': posts})
 
+# community/views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
+import json
+from .models import PostEntry
+from django.contrib.auth.decorators import login_required
 
+def get_posts_flutter(request):
+    try:
+        posts = PostEntry.objects.all()
+        posts_json = serializers.serialize('json', posts)
+        
+        # Parse JSON untuk menambahkan informasi tambahan jika diperlukan
+        posts_data = json.loads(posts_json)
+        
+        # Add authenticated user info to response if user is logged in
+        user_info = None
+        if request.user.is_authenticated:
+            user_info = {
+                'id': request.user.id,
+                'username': request.user.username
+            }
+        
+        return JsonResponse({
+            'status': 'success',
+            'results': posts_data,
+            'user': user_info  # Include user info in response
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
+@csrf_exempt
+@login_required
+def create_post_flutter(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Create post
+            post = PostEntry.objects.create(
+                title=data.get('title'),
+                caption=data.get('caption', ''),
+                location=data.get('location', ''),
+                photo_url=data.get('photo_url', ''),
+                user=request.user
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Post created successfully',
+                'data': {
+                    'id': post.id,
+                    'title': post.title
+                }
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    })
+
+@csrf_exempt
+@login_required
+def update_post_flutter(request, post_id):
+    if request.method == 'POST':  # Changed from PUT to POST
+        try:
+            post = PostEntry.objects.get(id=post_id, user=request.user)
+            data = json.loads(request.body)
+            
+            post.title = data.get('title', post.title)
+            post.caption = data.get('caption', post.caption)
+            post.location = data.get('location', post.location)
+            post.photo_url = data.get('photo_url', post.photo_url)
+            post.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Post updated successfully'
+            })
+        except PostEntry.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Post not found'
+            })
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    })
+
+@csrf_exempt
+@login_required
+def delete_post_flutter(request, post_id):
+    if request.method == 'POST':  # Changed from DELETE to POST
+        try:
+            post = PostEntry.objects.get(id=post_id, user=request.user)
+            post.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Post deleted successfully'
+            })
+        except PostEntry.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Post not found'
+            })
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    })
+
+@csrf_exempt
+@login_required
+def edit_post_flutter(request, post_id):
+    if request.method == 'POST':
+        try:
+            # Get the post and verify ownership
+            post = PostEntry.objects.get(id=post_id, user=request.user)
+            
+            # Parse the request data
+            data = json.loads(request.body)
+            
+            # Update post fields
+            post.title = data.get('title', post.title)
+            post.caption = data.get('caption', post.caption)
+            post.location = data.get('location', post.location)
+            post.photo_url = data.get('photo_url', post.photo_url)
+            post.save()
+            
+            # Serialize the updated post
+            post_json = serializers.serialize('json', [post])
+            post_data = json.loads(post_json)[0]
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Post updated successfully',
+                'data': post_data
+            })
+            
+        except PostEntry.DoesNotExist:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Post not found or unauthorized'
+            }, status=404)
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+            
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=400)
 
