@@ -1087,7 +1087,7 @@ def get_recommendations_json(request):
                         'location': str(row['Lokasi']).strip() if pd.notna(row['Lokasi']) else '',
                         'kecamatan': location,
                         'category': breakfast_type,
-                        'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else ''
+                        'operational_hours': str(row['Jam Operasional']).strip() if pd.notna(row['Jam Operasional']) else '',
                     }
                     recommendations.append(recommendation)
                 except Exception as e:
@@ -1621,3 +1621,4 @@ def product_details_api(request, product_id):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+

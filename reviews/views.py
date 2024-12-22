@@ -286,3 +286,15 @@ def get_reviews_for_product(request, product_id):
         return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
+@login_required
+def get_reviews_for_product(request, product_id):
+    reviews = Product.objects.filter(product_identifier=product_id).order_by('-date_added')
+    return JsonResponse([review.to_dict() for review in reviews], safe=False)
+
+@csrf_exempt
+@login_required
+def get_all_reviews(request):
+    reviews = Product.objects.all().order_by('-date_added')
+    return JsonResponse([review.to_dict() for review in reviews], safe=False)
