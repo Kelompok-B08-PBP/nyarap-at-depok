@@ -1680,54 +1680,61 @@ def get_reviews_for_product(request, product_id):
         return HttpResponse(serializers.serialize('json', reviews), content_type="application/json")
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
-def get_comments(request, product_identifier):
-    comments = Comment.objects.filter(product_identifier=product_identifier).order_by('-created_at')
-    response_data = {
-        "current_user": request.user.username,
-        "comments": [
-            {
-                "id": comment.id,
-                "content": comment.content,
-                "user": {"username": comment.user.username},  # Sertakan username
-                "created_at": comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "updated_at": comment.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for comment in comments
-        ]
-    }
-    return JsonResponse(response_data, safe=False, status=200)
 
 @csrf_exempt
-@login_required
-def add_comment(request, product_identifier):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            content = data.get('content', '').strip()
+def get_comments(request, product_id):  # Changed to match URL parameter
+    try:
+        comments = Comment.objects.filter(product_identifier=str(product_id)).select_related('user')
+        
+        return JsonResponse({
+            "comments": [{
+                "id": comment.id,
+                "content": comment.content,
+                "user_name": comment.user.username,
+                "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            } for comment in comments],
+            "current_user": request.user.username if request.user.is_authenticated else None
+        })
+    except Exception as e:
+        print(f"Error in get_comments: {e}")
+        return JsonResponse({
+            "comments": [],
+            "current_user": request.user.username if request.user.is_authenticated else None
+        })
 
+@csrf_exempt
+def add_comment(request, product_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Login required'}, status=401)
+        
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            content = data.get('content')
+            
             if not content:
                 return JsonResponse({'error': 'Content is required'}, status=400)
-
-            # Buat komentar dengan user dari request
+                
             comment = Comment.objects.create(
                 user=request.user,
-                product_identifier=product_identifier,
-                content=content,
+                product_identifier=str(product_id),  # Convert to string
+                content=content
             )
-
-            # Kembalikan respons dalam format JSON
+            
             return JsonResponse({
                 'id': comment.id,
                 'content': comment.content,
-                'user': {'username': comment.user.username},
-                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'updated_at': comment.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
-            }, status=201)
+                'user_name': comment.user.username,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
-    else:
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(f"Error in add_comment: {e}")  # For debugging
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @csrf_exempt
 @login_required
